@@ -1,19 +1,23 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, DM_Sans } from 'next/font/google'
+import { Noto_Sans_Thai, Inter } from 'next/font/google'
 
 import './globals.css'
 
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ['thai', 'latin'],
+  variable: '--font-noto-thai',
+  weight: ['300', '400', '500', '600', '700'],
+})
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-dm-sans' })
 
 export const metadata: Metadata = {
-  title: 'Thailand Road Trip Planner - Plan Your Adventure Instantly',
+  title: 'TripThai - วางแผน Road Trip ทั่วไทย',
   description:
-    'Calculate travel time, fuel cost, and total trip budget for your Thailand road trip in seconds. Smart route planning made easy.',
+    'คำนวณเส้นทาง เวลาเดินทาง ค่าน้ำมัน และงบรวมทั้งทริป พร้อมแนะนำทริปตามภาค',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1a8fc4',
+  themeColor: '#0d9668',
   width: 'device-width',
   initialScale: 1,
 }
@@ -24,9 +28,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="th">
       <body
-        className={`${inter.variable} ${dmSans.variable} font-sans antialiased`}
+        className={`${notoSansThai.variable} ${inter.variable} font-sans antialiased`}
       >
         {children}
       </body>

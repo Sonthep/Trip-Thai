@@ -1,7 +1,10 @@
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
-import { Features } from "@/components/features"
+import { Regions } from "@/components/regions"
+import { FeaturedTrips } from "@/components/featured-trips"
 import { HowItWorks } from "@/components/how-it-works"
+import { MapPreview } from "@/components/map-preview"
+import { SocialProof } from "@/components/social-proof"
 import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
 
@@ -11,8 +14,11 @@ export default function Page() {
       <Navbar />
       <main className="flex-1">
         <Hero />
-        <Features />
+        <Regions />
+        <FeaturedTrips />
         <HowItWorks />
+        <MapPreview />
+        <SocialProof />
         <CtaSection />
       </main>
       <Footer />
