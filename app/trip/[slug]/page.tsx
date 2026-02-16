@@ -15,13 +15,7 @@ import {
   Share2,
   BookmarkPlus,
 } from "lucide-react"
-import {
-  ChartContainer,
-  type ChartConfig,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Pie, PieChart, Cell } from "recharts"
+import { TripBudgetChart } from "@/components/TripBudgetChart"
 
 type TripDay = {
   day: number
@@ -103,33 +97,15 @@ function getTripBySlug(slug: string): TripDetail | undefined {
   return TRIPS.find((trip) => trip.slug === slug)
 }
 
-const budgetChartConfig: ChartConfig = {
-  fuel: {
-    label: "ค่าน้ำมัน",
-    color: "hsl(24 95% 58%)",
-  },
-  toll: {
-    label: "ค่าทางด่วน",
-    color: "hsl(197 97% 46%)",
-  },
-  food: {
-    label: "ค่าอาหาร",
-    color: "hsl(142 76% 45%)",
-  },
-  accommodation: {
-    label: "ค่าที่พัก",
-    color: "hsl(262 83% 58%)",
-  },
-}
-
 type TripPageProps = {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
-export default function TripPage({ params }: TripPageProps) {
-  const trip = getTripBySlug(params.slug)
+export default async function TripPage({ params }: TripPageProps) {
+  const { slug } = await params
+  const trip = getTripBySlug(slug)
 
   if (!trip) {
     notFound()
@@ -312,38 +288,13 @@ export default function TripPage({ params }: TripPageProps) {
               <CardTitle className="text-sm text-white">สัดส่วนงบประมาณ (กราฟ)</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={budgetChartConfig} className="h-56 w-full">
-                <PieChart>
-                  <Pie
-                    data={budgetData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={40}
-                    outerRadius={70}
-                    paddingAngle={3}
-                  >
-                    {budgetData.map((item) => (
-                      <Cell
-                        key={item.key}
-                        fill={`var(--color-${item.key})`}
-                        stroke="transparent"
-                      />
-                    ))}
-                  </Pie>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        nameKey="name"
-                        formatter={(value) => (
-                          <span className="font-mono text-xs">
-                            {formatCurrency(Number(value))}
-                          </span>
-                        )}
-                      />
-                    }
-                  />
-                </PieChart>
-              </ChartContainer>
+              <TripBudgetChart
+                data={budgetData as {
+                  key: "fuel" | "toll" | "food" | "accommodation"
+                  name: string
+                  value: number
+                }[]}
+              />
             </CardContent>
           </Card>
         </section>
