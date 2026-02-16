@@ -1,10 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, Search, MapPin, Calendar, Sparkles } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import Image from "next/image"
+import { QuickPlanner } from "@/components/QuickPlanner"
 
 export function Hero() {
   return (
@@ -82,57 +81,9 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Right: Quick Planner card — premium feel */}
+        {/* Right: TripThai Quick Planner */}
         <div className="mt-12 w-full max-w-md lg:mt-0">
-          <Card className="border-white/[0.08] bg-white/[0.07] shadow-2xl shadow-black/30 backdrop-blur-2xl">
-            <CardContent className="p-6">
-              <div className="mb-5 flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/20">
-                  <Sparkles className="h-4 w-4 text-[hsl(24,90%,60%)]" />
-                </div>
-                <span className="text-sm font-bold text-white">Quick Planner</span>
-              </div>
-              <div className="flex flex-col gap-3">
-                <div>
-                  <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-white/50">
-                    <MapPin className="h-3 w-3" />
-                    {"จุดเริ่มต้น"}
-                  </label>
-                  <Input
-                    placeholder="กรุงเทพ"
-                    defaultValue="กรุงเทพ"
-                    className="border-white/10 bg-white/[0.08] text-white placeholder:text-white/30 focus-visible:ring-accent"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-white/50">
-                    <MapPin className="h-3 w-3" />
-                    {"ปลายทาง"}
-                  </label>
-                  <Input
-                    placeholder="เชียงใหม่"
-                    className="border-white/10 bg-white/[0.08] text-white placeholder:text-white/30 focus-visible:ring-accent"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-white/50">
-                    <Calendar className="h-3 w-3" />
-                    {"จำนวนวัน"}
-                  </label>
-                  <Input
-                    placeholder="3"
-                    type="number"
-                    min={1}
-                    className="border-white/10 bg-white/[0.08] text-white placeholder:text-white/30 focus-visible:ring-accent"
-                  />
-                </div>
-                <Button className="mt-1 w-full gap-2 bg-accent font-semibold text-accent-foreground shadow-lg shadow-[hsl(24,90%,55%)]/20 hover:bg-accent/90">
-                  <Search className="h-4 w-4" />
-                  {"คำนวณทันที"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <QuickPlanner />
         </div>
       </div>
     </section>

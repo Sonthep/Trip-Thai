@@ -1,0 +1,144 @@
+"use client"
+
+import { Car, Coins, Fuel, PartyPopper, Utensils, BedDouble, Timer } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import type { TripCalculationResult } from "@/lib/calculateTrip"
+
+type TripResultProps = {
+  result: TripCalculationResult
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency: "THB",
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+export function TripResult({ result }: TripResultProps) {
+  const {
+    distance_km,
+    duration_hours,
+    fuel_cost,
+    toll_cost,
+    food_cost,
+    accommodation_cost,
+    total_cost,
+  } = result
+
+  const breakdown = [
+    {
+      key: "fuel",
+      label: "ค่าน้ำมัน",
+      value: fuel_cost,
+      icon: Fuel,
+      color: "bg-amber-400",
+    },
+    {
+      key: "toll",
+      label: "ค่าทางด่วน",
+      value: toll_cost,
+      icon: Coins,
+      color: "bg-sky-400",
+    },
+    {
+      key: "food",
+      label: "ค่าอาหารโดยประมาณ",
+      value: food_cost,
+      icon: Utensils,
+      color: "bg-emerald-400",
+    },
+    {
+      key: "accommodation",
+      label: "ค่าที่พักโดยประมาณ",
+      value: accommodation_cost,
+      icon: BedDouble,
+      color: "bg-violet-400",
+    },
+  ]
+
+  const safeTotal = total_cost || breakdown.reduce((sum, item) => sum + item.value, 0)
+
+  return (
+    <Card className="border-white/10 bg-slate-950/80 text-white shadow-2xl shadow-black/40 backdrop-blur-xl">
+      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/50">สรุปงบประมาณทั้งทริป</p>
+          <CardTitle className="mt-2 flex items-center gap-2 text-2xl font-semibold text-white md:text-3xl">
+            <PartyPopper className="h-6 w-6 text-[hsl(24,90%,65%)]" />
+            {formatCurrency(total_cost)}
+          </CardTitle>
+          <p className="mt-1 text-xs text-white/55">ประมาณการเบื้องต้น สามารถเปลี่ยนแปลงได้ตามการใช้จริง</p>
+        </div>
+        <div className="hidden rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right text-xs md:block">
+          <div className="flex items-center justify-end gap-1 text-[11px] font-medium text-white/70">
+            <Car className="h-3 w-3" />
+            <span>ระยะทางรวม</span>
+          </div>
+          <p className="mt-1 text-lg font-semibold text-white">
+            {distance_km.toLocaleString("th-TH", { maximumFractionDigits: 0 })} กม.
+          </p>
+          <div className="mt-1 flex items-center justify-end gap-1 text-[11px] text-white/55">
+            <Timer className="h-3 w-3" />
+            <span>เวลาขับประมาณ {duration_hours.toFixed(1)} ชม.</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Distance + time for mobile */}
+        <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/80 md:hidden">
+          <div className="flex items-center gap-2">
+            <Car className="h-3.5 w-3.5" />
+            <span>ระยะทาง</span>
+          </div>
+          <span className="font-medium">
+            {distance_km.toLocaleString("th-TH", { maximumFractionDigits: 0 })} กม. /{" "}
+            {duration_hours.toFixed(1)} ชม.
+          </span>
+        </div>
+
+        {/* Breakdown list */}
+        <div className="space-y-4">
+          {breakdown.map((item) => {
+            const Icon = item.icon
+            const percentage = safeTotal > 0 ? (item.value / safeTotal) * 100 : 0
+
+            return (
+              <div key={item.key} className="space-y-2">
+                <div className="flex items-center justify-between text-xs text-white/80">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/8">
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <span>{item.label}</span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-white">{formatCurrency(item.value)}</p>
+                    <p className="text-[11px] text-white/55">{percentage.toFixed(0)}% ของงบรวม</p>
+                  </div>
+                </div>
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-full rounded-full ${item.color}`}
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Summary footer */}
+        <div className="flex flex-col gap-3 border-t border-white/10 pt-3 text-xs text-white/70 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2">
+            <Coins className="h-3.5 w-3.5 text-[hsl(24,90%,65%)]" />
+            <span>รวมทุกค่าใช้จ่ายหลักของทริป (ไม่รวมช้อปปิ้งและค่าใช้จ่ายส่วนตัว)</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
