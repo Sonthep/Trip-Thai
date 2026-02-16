@@ -5,32 +5,56 @@ export function CtaSection() {
   return (
     <section className="py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-4 lg:px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center shadow-xl sm:px-12 lg:px-20">
-          {/* Decorative route pattern */}
+        <div className="relative overflow-hidden rounded-3xl bg-[hsl(192,50%,6%)] px-6 py-20 text-center shadow-2xl sm:px-12 lg:px-20">
+          {/* Star / dot field background */}
           <svg
-            className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.08]"
+            className="pointer-events-none absolute inset-0 h-full w-full"
             aria-hidden="true"
           >
-            <pattern id="cta-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-              <circle cx="16" cy="16" r="1" fill="white" />
-            </pattern>
-            <rect width="100%" height="100%" fill="url(#cta-dots)" />
+            {/* Star dots */}
+            <circle cx="10%" cy="15%" r="1" fill="white" opacity="0.3" />
+            <circle cx="25%" cy="8%" r="0.8" fill="white" opacity="0.2" />
+            <circle cx="40%" cy="20%" r="1.2" fill="white" opacity="0.25" />
+            <circle cx="55%" cy="5%" r="0.6" fill="white" opacity="0.15" />
+            <circle cx="70%" cy="18%" r="1" fill="white" opacity="0.2" />
+            <circle cx="85%" cy="10%" r="0.8" fill="white" opacity="0.3" />
+            <circle cx="15%" cy="80%" r="0.8" fill="white" opacity="0.15" />
+            <circle cx="30%" cy="90%" r="1" fill="white" opacity="0.2" />
+            <circle cx="60%" cy="85%" r="0.6" fill="white" opacity="0.25" />
+            <circle cx="75%" cy="92%" r="1.2" fill="white" opacity="0.15" />
+            <circle cx="90%" cy="75%" r="0.8" fill="white" opacity="0.2" />
+            <circle cx="5%" cy="50%" r="0.6" fill="white" opacity="0.1" />
+            <circle cx="95%" cy="45%" r="1" fill="white" opacity="0.15" />
+            <circle cx="48%" cy="60%" r="0.8" fill="white" opacity="0.1" />
+            <circle cx="20%" cy="40%" r="0.6" fill="white" opacity="0.12" />
+            <circle cx="80%" cy="55%" r="0.8" fill="white" opacity="0.1" />
+
+            {/* Night road dashes */}
+            <path
+              d="M 0 85% Q 25% 75% 50% 80% T 100% 70%"
+              fill="none"
+              stroke="white"
+              strokeWidth="1"
+              strokeDasharray="8 12"
+              opacity="0.08"
+            />
           </svg>
 
-          <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-primary-foreground/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-primary-foreground/5 blur-3xl" />
+          {/* Soft glow orbs */}
+          <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-accent/8 blur-3xl" />
 
           <div className="relative z-10">
-            <h2 className="mx-auto max-w-xl text-balance text-3xl font-bold tracking-tight text-primary-foreground md:text-4xl">
+            <h2 className="mx-auto max-w-xl text-balance text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {"พร้อมออกเดินทางแล้วหรือยัง?"}
             </h2>
-            <p className="mx-auto mt-4 max-w-md text-pretty text-primary-foreground/80">
+            <p className="mx-auto mt-5 max-w-md text-pretty text-white/60">
               {"เริ่มวางแผน Road Trip ทั่วไทยได้ฟรี คำนวณค่าใช้จ่ายและเส้นทางได้ทันที"}
             </p>
-            <div className="mt-8">
+            <div className="mt-9">
               <Button
                 size="lg"
-                className="gap-2 bg-accent px-8 text-base font-semibold text-accent-foreground hover:bg-accent/90"
+                className="gap-2 bg-accent px-10 text-base font-semibold text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30"
               >
                 {"เริ่มวางแผนฟรี"}
                 <ArrowRight className="h-4 w-4" />

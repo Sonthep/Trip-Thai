@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
+import { Comparison } from "@/components/comparison"
 import { Regions } from "@/components/regions"
 import { FeaturedTrips } from "@/components/featured-trips"
 import { HowItWorks } from "@/components/how-it-works"
@@ -14,6 +15,7 @@ export default function Page() {
       <Navbar />
       <main className="flex-1">
         <Hero />
+        <Comparison />
         <Regions />
         <FeaturedTrips />
         <HowItWorks />
