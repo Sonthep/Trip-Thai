@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_Thai, Inter } from 'next/font/google'
 
 import './globals.css'
+import 'leaflet/dist/leaflet.css'
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai', 'latin'],

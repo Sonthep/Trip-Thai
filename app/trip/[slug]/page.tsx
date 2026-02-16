@@ -16,6 +16,7 @@ import {
   BookmarkPlus,
 } from "lucide-react"
 import { TripBudgetChart } from "@/components/TripBudgetChart"
+import { TripMapClient as TripMap } from "@/components/TripMapClient"
 
 type TripDay = {
   day: number
@@ -36,11 +37,14 @@ type TripDetail = {
   name: string
   from: string
   to: string
+  distanceKm: number
   durationHours: number
   durationLabel: string
   budgetRangeLabel: string
   budget: TripBudget
   itinerary: TripDay[]
+  originLocation: { lat: number; lng: number }
+  destinationLocation: { lat: number; lng: number }
 }
 
 const TRIPS: TripDetail[] = [
@@ -49,6 +53,7 @@ const TRIPS: TripDetail[] = [
     name: "กรุงเทพ → เชียงใหม่",
     from: "กรุงเทพ",
     to: "เชียงใหม่",
+    distanceKm: 700,
     durationHours: 9.5,
     durationLabel: "ขับรถประมาณ 9–10 ชม.",
     budgetRangeLabel: "งบรวม 8,000 – 12,000 บาท / ทริป 3 วัน 2 คืน",
@@ -90,6 +95,14 @@ const TRIPS: TripDetail[] = [
         ],
       },
     ],
+    originLocation: {
+      lat: 13.7563, // Bangkok
+      lng: 100.5018,
+    },
+    destinationLocation: {
+      lat: 18.7883, // Chiang Mai
+      lng: 98.9853,
+    },
   },
 ]
 
@@ -343,11 +356,9 @@ export default async function TripPage({ params }: TripPageProps) {
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
               <MapPin className="h-4 w-4 text-sky-400" />
-              แผนที่เส้นทาง (ตัวอย่าง)
+              แผนที่เส้นทาง
             </h2>
-            <p className="text-[11px] text-white/55">
-              ในเวอร์ชันถัดไป TripThai จะดึงเส้นทางจริงจากแผนที่อัตโนมัติ
-            </p>
+            <p className="text-[11px] text-white/55">แผนที่ตัวอย่างจาก Google Maps สำหรับเส้นทางทริปนี้</p>
           </div>
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 to-slate-800 p-4">
             <div className="flex items-center justify-between text-xs text-white/70">
@@ -355,55 +366,23 @@ export default async function TripPage({ params }: TripPageProps) {
                 <span className="inline-flex h-6 items-center rounded-full bg-white/10 px-3 font-medium text-white">
                   {trip.from} → {trip.to}
                 </span>
-                <span className="text-[11px] text-white/60">
-                  เส้นทางตัวอย่างสำหรับการแสดงผลแผนที่
-                </span>
+                <span className="text-[11px] text-white/60">แผนที่ตัวอย่างสำหรับการแสดงผลเส้นทาง</span>
               </div>
-              <span className="hidden text-[11px] text-white/50 md:inline">
-                Preview เท่านั้น – ยังไม่ใช่แผนที่จริง
-              </span>
             </div>
-
             <div className="mt-4 h-56 rounded-xl bg-slate-950/80">
-              <div className="relative h-full w-full">
-                <div className="absolute inset-6 rounded-3xl border border-white/5 bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)]" />
-                <svg
-                  viewBox="0 0 400 220"
-                  className="absolute inset-6 h-[calc(100%-3rem)] w-[calc(100%-3rem)] text-sky-400/80"
-                >
-                  <defs>
-                    <linearGradient id="routeGradient" x1="0" x2="1" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#38bdf8" />
-                      <stop offset="100%" stopColor="#22c55e" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 40 180 C 110 150 130 140 180 120 C 230 100 260 80 320 40"
-                    fill="none"
-                    stroke="url(#routeGradient)"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray="6 6"
-                  />
-                  <circle cx="40" cy="180" r="6" fill="#38bdf8" />
-                  <circle cx="320" cy="40" r="6" fill="#22c55e" />
-                </svg>
-
-                <div className="absolute left-10 bottom-10 flex flex-col gap-1 rounded-xl bg-black/40 px-3 py-2 text-[11px] text-white/80 backdrop-blur">
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-sky-400" />
-                    จุดเริ่มต้น: {trip.from}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5 text-emerald-400" />
-                    ปลายทาง: {trip.to}
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-white/70" />
-                    เวลาเดินทางประมาณ {trip.durationLabel}
-                  </span>
-                </div>
-              </div>
+              <TripMap
+                origin={{
+                  position: trip.originLocation,
+                  label: trip.from,
+                }}
+                destination={{
+                  position: trip.destinationLocation,
+                  label: trip.to,
+                }}
+                distanceKm={trip.distanceKm}
+                durationHours={trip.durationHours}
+                fuelCost={trip.budget.fuel}
+              />
             </div>
           </div>
         </section>
