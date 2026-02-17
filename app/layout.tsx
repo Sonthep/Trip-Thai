@@ -1,24 +1,23 @@
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_Thai, Inter } from 'next/font/google'
+import { Inter, Noto_Sans_Thai } from 'next/font/google'
 
 import './globals.css'
-import 'leaflet/dist/leaflet.css'
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const notoSansThai = Noto_Sans_Thai({
   subsets: ['thai', 'latin'],
   variable: '--font-noto-thai',
   weight: ['300', '400', '500', '600', '700'],
 })
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'TripThai - วางแผน Road Trip ทั่วไทย',
+  title: 'TripThai - Trip Budget Optimization Engine',
   description:
-    'คำนวณเส้นทาง เวลาเดินทาง ค่าน้ำมัน และงบรวมทั้งทริป พร้อมแนะนำทริปตามภาค',
+    'Compare travel modes, accommodation, and total cost in one intelligent dashboard. Optimize your trip budget across Thailand.',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#0d9668',
+  themeColor: '#1a8a5c',
   width: 'device-width',
   initialScale: 1,
 }
@@ -29,9 +28,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="th">
+    <html lang="en">
       <body
-        className={`${notoSansThai.variable} ${inter.variable} font-sans antialiased`}
+        className={`${inter.variable} ${notoSansThai.variable} font-sans antialiased`}
       >
         {children}
       </body>
