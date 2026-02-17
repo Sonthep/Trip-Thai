@@ -5,44 +5,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Clock, Route, Wallet, Fuel, Utensils, BedDouble } from "lucide-react"
-
-const trips = [
-  {
-    title: "กรุงเทพ → เขาใหญ่",
-    duration: "2 วัน 1 คืน",
-    distance: "200 km",
-    driveTime: "3 ชม.",
-    budget: "3,500 - 5,000 ฿",
-    tag: "Popular",
-    tagColor: "bg-accent text-accent-foreground",
-    breakdown: { fuel: 35, food: 30, stay: 35 },
-  },
-  {
-    title: "กรุงเทพ → กาญจนบุรี",
-    duration: "2 วัน 1 คืน",
-    distance: "130 km",
-    driveTime: "2.5 ชม.",
-    budget: "2,800 - 4,500 ฿",
-    tag: "Weekend Trip",
-    tagColor: "bg-primary text-primary-foreground",
-    breakdown: { fuel: 25, food: 35, stay: 40 },
-  },
-  {
-    title: "กรุงเทพ → หัวหิน",
-    duration: "3 วัน 2 คืน",
-    distance: "195 km",
-    driveTime: "3 ชม.",
-    budget: "4,500 - 7,000 ฿",
-    tag: "Family Friendly",
-    tagColor: "bg-secondary text-secondary-foreground",
-    breakdown: { fuel: 20, food: 35, stay: 45 },
-  },
-]
+import { getFeaturedTrips } from "@/lib/trips"
 
 export function FeaturedTrips() {
+  const trips = getFeaturedTrips()
+
   return (
     <section className="bg-muted/50 py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-4 lg:px-6">
@@ -61,35 +32,35 @@ export function FeaturedTrips() {
         <div className="mt-14 grid gap-6 md:grid-cols-3">
           {trips.map((trip) => (
             <Card
-              key={trip.title}
+              key={trip.slug}
               className="group border-border/60 bg-card shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-2">
                   <CardTitle className="text-lg font-bold text-card-foreground">
-                    {trip.title}
+                    {trip.name}
                   </CardTitle>
-                  <Badge className={`shrink-0 border-0 text-xs font-semibold ${trip.tagColor}`}>
-                    {trip.tag}
+                  <Badge className={`shrink-0 border-0 text-xs font-semibold ${trip.featured.tagColor}`}>
+                    {trip.featured.tag}
                   </Badge>
                 </div>
                 <Badge variant="outline" className="mt-2 w-fit text-xs font-medium text-muted-foreground">
-                  {trip.duration}
+                  {trip.featured.duration}
                 </Badge>
               </CardHeader>
               <CardContent className="pb-4">
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Route className="h-4 w-4 shrink-0 text-primary" />
-                    <span>{"ระยะทาง: "}{trip.distance}</span>
+                    <span>{"ระยะทาง: "}{trip.distanceKm} km</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 shrink-0 text-primary" />
-                    <span>{"เวลาขับรถ: "}{trip.driveTime}</span>
+                    <span>{"เวลาขับรถ: "}{trip.featured.driveTime}</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Wallet className="h-4 w-4 shrink-0 text-accent" />
-                    <span className="font-semibold text-card-foreground">{trip.budget}</span>
+                    <span className="font-semibold text-card-foreground">{trip.featured.budgetLabel}</span>
                   </div>
                 </div>
 
@@ -99,15 +70,15 @@ export function FeaturedTrips() {
                   <div className="flex h-2.5 w-full overflow-hidden rounded-full">
                     <div
                       className="bg-primary transition-all"
-                      style={{ width: `${trip.breakdown.fuel}%` }}
+                      style={{ width: `${trip.featured.breakdown.fuel}%` }}
                     />
                     <div
                       className="bg-accent transition-all"
-                      style={{ width: `${trip.breakdown.food}%` }}
+                      style={{ width: `${trip.featured.breakdown.food}%` }}
                     />
                     <div
                       className="bg-secondary-foreground/30 transition-all"
-                      style={{ width: `${trip.breakdown.stay}%` }}
+                      style={{ width: `${trip.featured.breakdown.stay}%` }}
                     />
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
@@ -127,9 +98,11 @@ export function FeaturedTrips() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="ghost" size="sm" className="gap-1.5 px-0 text-sm font-semibold text-primary hover:bg-transparent hover:text-accent">
+                <Button asChild variant="ghost" size="sm" className="gap-1.5 px-0 text-sm font-semibold text-primary hover:bg-transparent hover:text-accent">
+                  <Link href={`/trip/${trip.slug}`}>
                   {"เปิดทริปนี้"}
                   <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_Thai, Inter } from 'next/font/google'
+import { getSiteUrl } from '@/lib/site'
 
 import './globals.css'
 import 'leaflet/dist/leaflet.css'
@@ -12,6 +13,13 @@ const notoSansThai = Noto_Sans_Thai({
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+    shortcut: '/icon',
+  },
   title: 'TripThai - วางแผน Road Trip ทั่วไทย',
   description:
     'คำนวณเส้นทาง เวลาเดินทาง ค่าน้ำมัน และงบรวมทั้งทริป พร้อมแนะนำทริปตามภาค',

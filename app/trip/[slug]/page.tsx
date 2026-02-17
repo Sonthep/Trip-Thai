@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -17,103 +18,65 @@ import {
 } from "lucide-react"
 import { TripBudgetChart } from "@/components/TripBudgetChart"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
-
-type TripDay = {
-  day: number
-  title: string
-  items: string[]
-}
-
-type TripBudget = {
-  fuel: number
-  toll: number
-  food: number
-  accommodation: number
-  total: number
-}
-
-type TripDetail = {
-  slug: string
-  name: string
-  from: string
-  to: string
-  distanceKm: number
-  durationHours: number
-  durationLabel: string
-  budgetRangeLabel: string
-  budget: TripBudget
-  itinerary: TripDay[]
-  originLocation: { lat: number; lng: number }
-  destinationLocation: { lat: number; lng: number }
-}
-
-const TRIPS: TripDetail[] = [
-  {
-    slug: "bangkok-chiang-mai",
-    name: "กรุงเทพ → เชียงใหม่",
-    from: "กรุงเทพ",
-    to: "เชียงใหม่",
-    distanceKm: 700,
-    durationHours: 9.5,
-    durationLabel: "ขับรถประมาณ 9–10 ชม.",
-    budgetRangeLabel: "งบรวม 8,000 – 12,000 บาท / ทริป 3 วัน 2 คืน",
-    budget: {
-      fuel: 2600,
-      toll: 320,
-      food: 3600,
-      accommodation: 2400,
-      total: 2600 + 320 + 3600 + 2400,
-    },
-    itinerary: [
-      {
-        day: 1,
-        title: "ออกเดินทางจากกรุงเทพ – เชียงใหม่",
-        items: [
-          "ออกเดินทางจากกรุงเทพ ช่วงเช้ามืด แวะปั๊มน้ำมันใหญ่เพื่อเติมน้ำมันและซื้ออาหารเช้า",
-          "แวะพักรถที่นครสวรรค์ / กำแพงเพชร สำหรับเข้าห้องน้ำและยืดเส้นยืดสาย",
-          "มาถึงเชียงใหม่ช่วงบ่าย เช็คอินที่โรงแรม/โฮเทลในตัวเมือง",
-          "เย็น: เดินเล่นถนนนิมมานฯ หรือคาเฟ่บนดาดฟ้า ชมวิวพระอาทิตย์ตก",
-        ],
-      },
-      {
-        day: 2,
-        title: "เที่ยวรอบเชียงใหม่ – วัด คาเฟ่ และจุดชมวิว",
-        items: [
-          "เช้า: ไหว้พระที่ดอยสุเทพ หรือวัดพระธาตุดอยคำ ชมวิวเมืองเชียงใหม่",
-          "กลางวัน: คาเฟ่วิวภูเขา/แม่น้ำ รอบนอกตัวเมือง",
-          "บ่าย: เดินเล่นคูเมืองเชียงใหม่ / คาเฟ่สไตล์มินิมอล",
-          "ค่ำ: ดินเนอร์ร้านอาหารท้องถิ่น หรือถนนคนเดิน (ถ้าตรงกับวันเสาร์/อาทิตย์)",
-        ],
-      },
-      {
-        day: 3,
-        title: "เดินทางกลับกรุงเทพ",
-        items: [
-          "เช้า: เช็คเอาท์ ออกเดินทางจากเชียงใหม่",
-          "แวะทานกลางวันระหว่างทางที่กำแพงเพชร / นครสวรรค์",
-          "ถึงกรุงเทพช่วงค่ำ พักผ่อนหลังจบทริป",
-        ],
-      },
-    ],
-    originLocation: {
-      lat: 13.7563, // Bangkok
-      lng: 100.5018,
-    },
-    destinationLocation: {
-      lat: 18.7883, // Chiang Mai
-      lng: 98.9853,
-    },
-  },
-]
-
-function getTripBySlug(slug: string): TripDetail | undefined {
-  return TRIPS.find((trip) => trip.slug === slug)
-}
+import { getTripBySlug, TRIPS } from "@/lib/trips"
+import { getSiteUrl } from "@/lib/site"
 
 type TripPageProps = {
   params: Promise<{
     slug: string
   }>
+}
+
+export function generateStaticParams() {
+  return TRIPS.map((trip) => ({ slug: trip.slug }))
+}
+
+export async function generateMetadata({ params }: TripPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const trip = getTripBySlug(slug)
+
+  if (!trip) {
+    return {
+      title: "ไม่พบทริป | TripThai",
+      description: "ไม่พบทริปที่คุณกำลังค้นหา",
+    }
+  }
+
+  const baseUrl = getSiteUrl()
+  const pageUrl = `${baseUrl}/trip/${trip.slug}`
+  const ogImageUrl = `${baseUrl}/trip/${trip.slug}/opengraph-image`
+  const title = `${trip.name} | TripThai`
+  const description = `แผนทริป ${trip.from} ไป ${trip.to} ระยะทาง ${trip.distanceKm} กม. ${trip.durationLabel} พร้อมงบประมาณโดยประมาณ ${trip.budgetRangeLabel}`
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: pageUrl,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${trip.name} - TripThai`,
+        },
+      ],
+      siteName: "TripThai",
+      locale: "th_TH",
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  }
 }
 
 export default async function TripPage({ params }: TripPageProps) {
