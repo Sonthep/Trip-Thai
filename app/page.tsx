@@ -6,6 +6,7 @@ import { FeaturedTrips } from "@/components/featured-trips"
 import { HowItWorks } from "@/components/how-it-works"
 import { MapPreview } from "@/components/map-preview"
 import { SocialProof } from "@/components/social-proof"
+import { FAQ } from "@/components/faq"
 import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
 
@@ -21,6 +22,7 @@ export default function Page() {
         <HowItWorks />
         <MapPreview />
         <SocialProof />
+        <FAQ />
         <CtaSection />
       </main>
       <Footer />

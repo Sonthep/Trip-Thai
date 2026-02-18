@@ -14,8 +14,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CheckCircle2, BookmarkPlus, Loader2 } from "lucide-react"
+import { analytics } from "@/lib/analytics"
 
-export function LeadCaptureDialog({ tripName }: { tripName: string }) {
+export function LeadCaptureDialog({ tripName, tripSlug }: { tripName: string; tripSlug: string }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -25,16 +26,45 @@ export function LeadCaptureDialog({ tripName }: { tripName: string }) {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate API call for lead collection
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      // Call real API to submit lead
+      const response = await fetch("/api/submit-lead", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          tripSlug,
+          tripName,
+        }),
+      })
 
-    console.log(`Lead Captured: ${email} for trip ${tripName}`)
-    setLoading(false)
-    setSuccess(true)
+      if (!response.ok) {
+        throw new Error("Failed to submit lead")
+      }
+
+      // Track lead submission
+      analytics.submitLead(tripSlug, email)
+
+      console.log(`Lead Captured: ${email} for trip ${tripName}`)
+      setSuccess(true)
+    } catch (error) {
+      console.error("Error submitting lead:", error)
+      alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง")
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleOpenChange(isOpen: boolean) {
     setOpen(isOpen)
+    
+    // Track when dialog is opened
+    if (isOpen && !success) {
+      analytics.clickSaveTrip(tripSlug)
+    }
+    
     if (!isOpen) {
       // Reset state when closed with delay for smooth exit
       setTimeout(() => {

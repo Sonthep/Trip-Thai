@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_Thai, Inter } from 'next/font/google'
 import { getSiteUrl } from '@/lib/site'
+import { GoogleAnalytics } from '@/components/google-analytics'
 
 import './globals.css'
 import 'leaflet/dist/leaflet.css'
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${notoSansThai.variable} ${inter.variable} font-sans antialiased`}
       >
+        <GoogleAnalytics />
         {children}
       </body>
     </html>

@@ -2,7 +2,6 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Car,
   Clock,
@@ -13,14 +12,14 @@ import {
   Plane,
   Utensils,
   BedDouble,
-  Share2,
-  BookmarkPlus,
 } from "lucide-react"
 import { TripBudgetChart } from "@/components/TripBudgetChart"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
 import { getTripBySlug, TRIPS } from "@/lib/trips"
 import { getSiteUrl } from "@/lib/site"
 import { LeadCaptureDialog } from "@/components/lead-capture-dialog"
+import { TripPageClient } from "@/app/trip/[slug]/page-client"
+import { ShareButton } from "@/components/share-button"
 
 type TripPageProps = {
   params: Promise<{
@@ -106,6 +105,9 @@ export default async function TripPage({ params }: TripPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+      {/* Track page view */}
+      <TripPageClient tripSlug={trip.slug} tripName={trip.name} />
+      
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-20 md:px-6">
         {/* Hero Section */}
         <section className="grid gap-6 md:grid-cols-[3fr,2fr] md:items-center">
@@ -152,14 +154,8 @@ export default async function TripPage({ params }: TripPageProps) {
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
-              <LeadCaptureDialog tripName={trip.name} />
-              <Button
-                variant="outline"
-                className="gap-2 rounded-full border-white/30 bg-transparent px-5 text-sm text-white hover:bg-white/10"
-              >
-                <Share2 className="h-4 w-4" />
-                แชร์ให้เพื่อน
-              </Button>
+              <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
+              <ShareButton tripSlug={trip.slug} />
             </div>
           </div>
 
@@ -360,14 +356,8 @@ export default async function TripPage({ params }: TripPageProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <LeadCaptureDialog tripName={trip.name} />
-            <Button
-              variant="outline"
-              className="gap-2 rounded-full border-white/30 bg-transparent px-5 text-xs text-white hover:bg-white/10"
-            >
-              <Share2 className="h-4 w-4" />
-              แชร์ลิงก์ทริป
-            </Button>
+            <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
+            <ShareButton tripSlug={trip.slug} />
           </div>
         </section>
       </div>
