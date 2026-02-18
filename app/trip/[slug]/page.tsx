@@ -20,6 +20,7 @@ import { TripBudgetChart } from "@/components/TripBudgetChart"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
 import { getTripBySlug, TRIPS } from "@/lib/trips"
 import { getSiteUrl } from "@/lib/site"
+import { LeadCaptureDialog } from "@/components/lead-capture-dialog"
 
 type TripPageProps = {
   params: Promise<{
@@ -151,10 +152,7 @@ export default async function TripPage({ params }: TripPageProps) {
             </div>
 
             <div className="flex flex-wrap gap-3 pt-2">
-              <Button className="gap-2 rounded-full bg-emerald-500 px-6 text-sm font-semibold text-emerald-950 shadow-lg shadow-emerald-500/30 hover:bg-emerald-400">
-                <BookmarkPlus className="h-4 w-4" />
-                บันทึกทริปนี้
-              </Button>
+              <LeadCaptureDialog tripName={trip.name} />
               <Button
                 variant="outline"
                 className="gap-2 rounded-full border-white/30 bg-transparent px-5 text-sm text-white hover:bg-white/10"
@@ -362,10 +360,7 @@ export default async function TripPage({ params }: TripPageProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button className="gap-2 rounded-full bg-emerald-500 px-5 text-xs font-semibold text-emerald-950 shadow-md shadow-emerald-500/40 hover:bg-emerald-400">
-              <BookmarkPlus className="h-4 w-4" />
-              บันทึกทริปนี้
-            </Button>
+            <LeadCaptureDialog tripName={trip.name} />
             <Button
               variant="outline"
               className="gap-2 rounded-full border-white/30 bg-transparent px-5 text-xs text-white hover:bg-white/10"
