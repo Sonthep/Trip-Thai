@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { ArrowRight } from "lucide-react"
 import Image from "next/image"
@@ -13,6 +11,8 @@ export function Hero() {
         src="/images/hero-thailand.jpg"
         alt="Scenic road through Thailand mountains"
         fill
+        sizes="100vw"
+        quality={82}
         className="object-cover"
         priority
       />
