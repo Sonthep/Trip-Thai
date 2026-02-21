@@ -26,6 +26,9 @@ export function TripResult({ result }: TripResultProps) {
     food_cost,
     accommodation_cost,
     total_cost,
+    ordered_stops,
+    route_plan,
+    segments,
   } = result
 
   const breakdown = [
@@ -129,6 +132,38 @@ export function TripResult({ result }: TripResultProps) {
             )
           })}
         </div>
+
+        {/* Multi-stop route details */}
+        {route_plan.length > 2 && (
+          <div className="space-y-3 rounded-lg border border-white/10 bg-white/5 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">เส้นทางที่จัดแล้ว</p>
+            <div className="flex flex-wrap items-center gap-1.5 text-xs text-white/85">
+              {route_plan.map((point, index) => (
+                <div key={`${point}-${index}`} className="flex items-center gap-1.5">
+                  <span className="rounded-md bg-white/10 px-2 py-1">{point}</span>
+                  {index < route_plan.length - 1 && <span className="text-white/50">→</span>}
+                </div>
+              ))}
+            </div>
+
+            {ordered_stops.length > 0 && (
+              <p className="text-[11px] text-white/60">
+                จุดแวะทั้งหมด {ordered_stops.length} จุด และจัดลำดับให้อัตโนมัติแล้ว
+              </p>
+            )}
+
+            <div className="space-y-2">
+              {segments.map((segment, index) => (
+                <div key={`${segment.from}-${segment.to}-${index}`} className="flex items-center justify-between text-[11px] text-white/70">
+                  <span>{segment.from} → {segment.to}</span>
+                  <span>
+                    {segment.distance_km.toLocaleString("th-TH")} กม. · {segment.duration_hours.toFixed(1)} ชม.
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Summary footer */}
         <div className="flex flex-col gap-3 border-t border-white/10 pt-3 text-xs text-white/70 md:flex-row md:items-center md:justify-between">

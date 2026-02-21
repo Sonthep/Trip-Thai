@@ -8,6 +8,10 @@ export async function POST(request: Request) {
     const input: TripCalculationInput = {
       origin: typeof body.origin === "string" ? body.origin : "",
       destination: typeof body.destination === "string" ? body.destination : "",
+      stops: Array.isArray(body.stops)
+        ? body.stops.filter((stop: unknown): stop is string => typeof stop === "string")
+        : [],
+      autoOptimizeStops: body.autoOptimizeStops !== false,
       days: Number(body.days) || 1,
       people: Number(body.people) || 1,
       kmPerLiter: Number(body.kmPerLiter) || 12,

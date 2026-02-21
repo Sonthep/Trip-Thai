@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { MapPin, Calendar, Users, Gauge, Fuel, Search, Sparkles, CircleAlert } from "lucide-react"
+import { useMemo, useState } from "react"
+import { MapPin, Calendar, Users, Gauge, Fuel, Search, Sparkles, CircleAlert, Route } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TripResult } from "@/components/TripResult"
 import type { TripCalculationResult } from "@/lib/calculateTrip"
@@ -12,6 +13,8 @@ import type { TripCalculationResult } from "@/lib/calculateTrip"
 type PlannerFormState = {
   origin: string
   destination: string
+  stopsText: string
+  autoOptimizeStops: boolean
   days: string
   people: string
   kmPerLiter: string
@@ -21,6 +24,8 @@ type PlannerFormState = {
 const DEFAULT_FORM: PlannerFormState = {
   origin: "กรุงเทพ",
   destination: "เชียงใหม่",
+  stopsText: "",
+  autoOptimizeStops: true,
   days: "3",
   people: "2",
   kmPerLiter: "14",
@@ -33,10 +38,23 @@ export function QuickPlanner() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const parsedStops = useMemo(
+    () =>
+      form.stopsText
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    [form.stopsText],
+  )
+
   const handleChange =
     (field: keyof PlannerFormState) => (event: React.ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: event.target.value }))
     }
+
+  const handleToggleOptimizeStops = (checked: boolean) => {
+    setForm((prev) => ({ ...prev, autoOptimizeStops: checked }))
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -47,6 +65,8 @@ export function QuickPlanner() {
       const payload = {
         origin: form.origin.trim(),
         destination: form.destination.trim(),
+        stops: parsedStops,
+        autoOptimizeStops: form.autoOptimizeStops,
         days: Number(form.days) || 1,
         people: Number(form.people) || 1,
         kmPerLiter: Number(form.kmPerLiter) || 12,
@@ -115,6 +135,26 @@ export function QuickPlanner() {
                   className="border-white/10 bg-white/[0.08] text-white placeholder:text-white/30 focus-visible:ring-accent"
                 />
               </div>
+              <div>
+                <label className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-white/50">
+                  <Route className="h-3 w-3" />
+                  {"จุดแวะ (คั่นด้วย ,)"}
+                </label>
+                <Input
+                  value={form.stopsText}
+                  onChange={handleChange("stopsText")}
+                  placeholder="เช่น อยุธยา, นครสวรรค์, ลำปาง"
+                  className="border-white/10 bg-white/[0.08] text-white placeholder:text-white/30 focus-visible:ring-accent"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2">
+              <div>
+                <p className="text-xs font-medium text-white/80">จัดลำดับจุดแวะอัตโนมัติ</p>
+                <p className="text-[11px] text-white/50">ลดระยะทางโดยประมาณด้วยการเรียงเส้นทางใหม่อัตโนมัติ</p>
+              </div>
+              <Switch checked={form.autoOptimizeStops} onCheckedChange={handleToggleOptimizeStops} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
