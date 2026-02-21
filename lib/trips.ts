@@ -37,7 +37,7 @@ export type TripDetail = {
   featured: TripFeaturedMeta
 }
 
-export const TRIPS: TripDetail[] = [
+const CORE_TRIPS: TripDetail[] = [
   {
     slug: "bangkok-chiang-mai",
     name: "กรุงเทพ → เชียงใหม่",
@@ -593,6 +593,297 @@ export const TRIPS: TripDetail[] = [
     },
   },
 ]
+
+type ProvinceRegion = "north" | "northeast" | "central" | "east" | "west" | "south"
+
+type ProvinceSeed = {
+  slug: string
+  name: string
+  region: ProvinceRegion
+}
+
+const PROVINCES: ProvinceSeed[] = [
+  // North (17)
+  { slug: "chiang-mai", name: "เชียงใหม่", region: "north" },
+  { slug: "chiang-rai", name: "เชียงราย", region: "north" },
+  { slug: "lampang", name: "ลำปาง", region: "north" },
+  { slug: "lamphun", name: "ลำพูน", region: "north" },
+  { slug: "mae-hong-son", name: "แม่ฮ่องสอน", region: "north" },
+  { slug: "nan", name: "น่าน", region: "north" },
+  { slug: "phayao", name: "พะเยา", region: "north" },
+  { slug: "phrae", name: "แพร่", region: "north" },
+  { slug: "uttaradit", name: "อุตรดิตถ์", region: "north" },
+  { slug: "tak", name: "ตาก", region: "north" },
+  { slug: "sukhothai", name: "สุโขทัย", region: "north" },
+  { slug: "phitsanulok", name: "พิษณุโลก", region: "north" },
+  { slug: "phichit", name: "พิจิตร", region: "north" },
+  { slug: "kamphaeng-phet", name: "กำแพงเพชร", region: "north" },
+  { slug: "nakhon-sawan", name: "นครสวรรค์", region: "north" },
+  { slug: "uthai-thani", name: "อุทัยธานี", region: "north" },
+  { slug: "phetchabun", name: "เพชรบูรณ์", region: "north" },
+
+  // Northeast (20)
+  { slug: "kalasin", name: "กาฬสินธุ์", region: "northeast" },
+  { slug: "khon-kaen", name: "ขอนแก่น", region: "northeast" },
+  { slug: "chaiyaphum", name: "ชัยภูมิ", region: "northeast" },
+  { slug: "nakhon-phanom", name: "นครพนม", region: "northeast" },
+  { slug: "nakhon-ratchasima", name: "นครราชสีมา", region: "northeast" },
+  { slug: "bueng-kan", name: "บึงกาฬ", region: "northeast" },
+  { slug: "buri-ram", name: "บุรีรัมย์", region: "northeast" },
+  { slug: "maha-sarakham", name: "มหาสารคาม", region: "northeast" },
+  { slug: "mukdahan", name: "มุกดาหาร", region: "northeast" },
+  { slug: "yasothon", name: "ยโสธร", region: "northeast" },
+  { slug: "roi-et", name: "ร้อยเอ็ด", region: "northeast" },
+  { slug: "loei", name: "เลย", region: "northeast" },
+  { slug: "si-sa-ket", name: "ศรีสะเกษ", region: "northeast" },
+  { slug: "sakon-nakhon", name: "สกลนคร", region: "northeast" },
+  { slug: "surin", name: "สุรินทร์", region: "northeast" },
+  { slug: "nong-khai", name: "หนองคาย", region: "northeast" },
+  { slug: "nong-bua-lamphu", name: "หนองบัวลำภู", region: "northeast" },
+  { slug: "udon-thani", name: "อุดรธานี", region: "northeast" },
+  { slug: "ubon-ratchathani", name: "อุบลราชธานี", region: "northeast" },
+  { slug: "amnat-charoen", name: "อำนาจเจริญ", region: "northeast" },
+
+  // Central / East / West (26)
+  { slug: "bangkok", name: "กรุงเทพมหานคร", region: "central" },
+  { slug: "samut-prakan", name: "สมุทรปราการ", region: "central" },
+  { slug: "nonthaburi", name: "นนทบุรี", region: "central" },
+  { slug: "pathum-thani", name: "ปทุมธานี", region: "central" },
+  { slug: "ayutthaya", name: "พระนครศรีอยุธยา", region: "central" },
+  { slug: "ang-thong", name: "อ่างทอง", region: "central" },
+  { slug: "lopburi", name: "ลพบุรี", region: "central" },
+  { slug: "sing-buri", name: "สิงห์บุรี", region: "central" },
+  { slug: "chai-nat", name: "ชัยนาท", region: "central" },
+  { slug: "saraburi", name: "สระบุรี", region: "central" },
+  { slug: "nakhon-nayok", name: "นครนายก", region: "central" },
+  { slug: "prachin-buri", name: "ปราจีนบุรี", region: "central" },
+  { slug: "chachoengsao", name: "ฉะเชิงเทรา", region: "central" },
+  { slug: "sa-kaeo", name: "สระแก้ว", region: "east" },
+  { slug: "chonburi", name: "ชลบุรี", region: "east" },
+  { slug: "rayong", name: "ระยอง", region: "east" },
+  { slug: "chanthaburi", name: "จันทบุรี", region: "east" },
+  { slug: "trat", name: "ตราด", region: "east" },
+  { slug: "kanchanaburi", name: "กาญจนบุรี", region: "west" },
+  { slug: "ratchaburi", name: "ราชบุรี", region: "west" },
+  { slug: "suphan-buri", name: "สุพรรณบุรี", region: "central" },
+  { slug: "nakhon-pathom", name: "นครปฐม", region: "central" },
+  { slug: "samut-sakhon", name: "สมุทรสาคร", region: "central" },
+  { slug: "samut-songkhram", name: "สมุทรสงคราม", region: "central" },
+  { slug: "phetchaburi", name: "เพชรบุรี", region: "west" },
+  { slug: "prachuap-khiri-khan", name: "ประจวบคีรีขันธ์", region: "west" },
+
+  // South (14)
+  { slug: "chumphon", name: "ชุมพร", region: "south" },
+  { slug: "ranong", name: "ระนอง", region: "south" },
+  { slug: "surat-thani", name: "สุราษฎร์ธานี", region: "south" },
+  { slug: "phang-nga", name: "พังงา", region: "south" },
+  { slug: "phuket", name: "ภูเก็ต", region: "south" },
+  { slug: "krabi", name: "กระบี่", region: "south" },
+  { slug: "nakhon-si-thammarat", name: "นครศรีธรรมราช", region: "south" },
+  { slug: "trang", name: "ตรัง", region: "south" },
+  { slug: "phatthalung", name: "พัทลุง", region: "south" },
+  { slug: "satun", name: "สตูล", region: "south" },
+  { slug: "songkhla", name: "สงขลา", region: "south" },
+  { slug: "pattani", name: "ปัตตานี", region: "south" },
+  { slug: "yala", name: "ยะลา", region: "south" },
+  { slug: "narathiwat", name: "นราธิวาส", region: "south" },
+]
+
+const BANGKOK = { lat: 13.7563, lng: 100.5018 }
+
+const REGION_CENTER: Record<ProvinceRegion, { lat: number; lng: number }> = {
+  north: { lat: 18.2, lng: 99.5 },
+  northeast: { lat: 16.2, lng: 103.1 },
+  central: { lat: 14.0, lng: 100.7 },
+  east: { lat: 13.0, lng: 101.7 },
+  west: { lat: 14.1, lng: 99.4 },
+  south: { lat: 8.4, lng: 99.8 },
+}
+
+const REGION_TAG: Record<ProvinceRegion, { tag: string; tagColor: string }> = {
+  north: { tag: "Mountain Route", tagColor: "bg-secondary text-secondary-foreground" },
+  northeast: { tag: "Cultural Loop", tagColor: "bg-primary text-primary-foreground" },
+  central: { tag: "City Escape", tagColor: "bg-accent text-accent-foreground" },
+  east: { tag: "Coastal Drive", tagColor: "bg-accent text-accent-foreground" },
+  west: { tag: "Nature Route", tagColor: "bg-secondary text-secondary-foreground" },
+  south: { tag: "Sea & Islands", tagColor: "bg-primary text-primary-foreground" },
+}
+
+function toSeedNumber(value: string) {
+  return value.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+}
+
+function estimateProvinceLocation(seed: ProvinceSeed) {
+  if (seed.slug === "bangkok") {
+    return BANGKOK
+  }
+
+  const regionCenter = REGION_CENTER[seed.region]
+  const seedNumber = toSeedNumber(seed.slug)
+  const latOffset = ((seedNumber % 23) - 11) * 0.08
+  const lngOffset = ((seedNumber % 29) - 14) * 0.08
+
+  return {
+    lat: Number((regionCenter.lat + latOffset).toFixed(4)),
+    lng: Number((regionCenter.lng + lngOffset).toFixed(4)),
+  }
+}
+
+function haversineDistanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180
+  const earthRadius = 6371
+
+  const dLat = toRadians(b.lat - a.lat)
+  const dLng = toRadians(b.lng - a.lng)
+  const lat1 = toRadians(a.lat)
+  const lat2 = toRadians(b.lat)
+
+  const h =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLng / 2) * Math.sin(dLng / 2) * Math.cos(lat1) * Math.cos(lat2)
+
+  const c = 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
+  return earthRadius * c
+}
+
+function roundToHundreds(value: number) {
+  return Math.max(100, Math.round(value / 100) * 100)
+}
+
+function estimateDistance(seed: ProvinceSeed, destination: { lat: number; lng: number }) {
+  if (seed.slug === "bangkok") {
+    return 25
+  }
+
+  const directDistance = haversineDistanceKm(BANGKOK, destination)
+  const roadFactor = seed.region === "south" || seed.region === "northeast" ? 1.35 : 1.28
+  return Math.max(60, Math.round(directDistance * roadFactor))
+}
+
+function estimateDays(distanceKm: number) {
+  if (distanceKm <= 120) return 1
+  if (distanceKm <= 320) return 2
+  if (distanceKm <= 700) return 3
+  return 4
+}
+
+function buildItinerary(provinceName: string, days: number): TripDay[] {
+  if (days === 1) {
+    return [
+      {
+        day: 1,
+        title: `One-day Trip: กรุงเทพ → ${provinceName}`,
+        items: [
+          `ออกเดินทางจากกรุงเทพช่วงเช้า เพื่อไปยัง${provinceName}`,
+          `เที่ยวจุดไฮไลต์ของ${provinceName} เช่น วัด/คาเฟ่/ตลาดท้องถิ่น`,
+          "พักผ่อนและทานอาหารขึ้นชื่อของจังหวัด",
+          "เดินทางกลับกรุงเทพช่วงเย็น",
+        ],
+      },
+    ]
+  }
+
+  const result: TripDay[] = [
+    {
+      day: 1,
+      title: `เดินทางจากกรุงเทพไป${provinceName}`,
+      items: [
+        "ออกเดินทางจากกรุงเทพช่วงเช้า แวะพักรถระหว่างทางตามความเหมาะสม",
+        `ถึง${provinceName}ช่วงบ่าย เช็คอินที่พักและพักผ่อน`,
+        "ค่ำ: เดินเล่นย่านท้องถิ่นและทานอาหารประจำจังหวัด",
+      ],
+    },
+  ]
+
+  for (let day = 2; day < days; day += 1) {
+    result.push({
+      day,
+      title: `เที่ยวรอบ${provinceName} (วันที่ ${day})`,
+      items: [
+        `เช้า: เที่ยวสถานที่ธรรมชาติหรือแลนด์มาร์กยอดนิยมของ${provinceName}`,
+        "กลางวัน: ทานอาหารพื้นเมืองและพักผ่อน",
+        "บ่าย: คาเฟ่/จุดชมวิว/ตลาดชุมชน",
+        "ค่ำ: พักผ่อนตามอัธยาศัย",
+      ],
+    })
+  }
+
+  result.push({
+    day: days,
+    title: "เดินทางกลับกรุงเทพ",
+    items: [
+      "เช้า: เช็คเอาท์และแวะซื้อของฝาก",
+      "ออกเดินทางกลับกรุงเทพพร้อมพักรถระหว่างทาง",
+      "ถึงกรุงเทพช่วงเย็นหรือค่ำ",
+    ],
+  })
+
+  return result
+}
+
+function createProvinceTrip(seed: ProvinceSeed): TripDetail {
+  const destinationLocation = estimateProvinceLocation(seed)
+  const distanceKm = estimateDistance(seed, destinationLocation)
+  const days = estimateDays(distanceKm)
+  const durationHours = Number((distanceKm / 75).toFixed(1))
+
+  const fuel = roundToHundreds(((distanceKm * 2) / 14) * 38)
+  const toll = distanceKm <= 80 ? 0 : roundToHundreds(distanceKm * 0.8)
+  const food = roundToHundreds(days * 800)
+  const accommodation = days > 1 ? roundToHundreds((days - 1) * 1400) : 0
+  const total = fuel + toll + food + accommodation
+
+  const lowBudget = roundToHundreds(total * 0.85)
+  const highBudget = roundToHundreds(total * 1.2)
+
+  const stayRatio = total > 0 ? Math.round((accommodation / total) * 100) : 0
+  const foodRatio = total > 0 ? Math.round((food / total) * 100) : 0
+  const fuelRatio = Math.max(10, 100 - stayRatio - foodRatio)
+
+  const durationText = days === 1 ? "1 วัน" : `${days} วัน ${days - 1} คืน`
+  const tripSlug = `bangkok-${seed.slug}`
+  const regionTag = REGION_TAG[seed.region]
+
+  return {
+    slug: tripSlug,
+    name: `กรุงเทพ → ${seed.name}`,
+    from: "กรุงเทพ",
+    to: seed.name,
+    distanceKm,
+    durationHours,
+    durationLabel: `ขับรถประมาณ ${durationHours} ชม.`,
+    budgetRangeLabel: `งบรวม ${lowBudget.toLocaleString("th-TH")} – ${highBudget.toLocaleString("th-TH")} บาท / ทริป ${durationText}`,
+    budget: {
+      fuel,
+      toll,
+      food,
+      accommodation,
+      total,
+    },
+    itinerary: buildItinerary(seed.name, days),
+    originLocation: BANGKOK,
+    destinationLocation,
+    featured: {
+      duration: durationText,
+      driveTime: `${durationHours} ชม.`,
+      budgetLabel: `${lowBudget.toLocaleString("th-TH")} - ${highBudget.toLocaleString("th-TH")} ฿`,
+      tag: regionTag.tag,
+      tagColor: regionTag.tagColor,
+      breakdown: {
+        fuel: fuelRatio,
+        food: foodRatio,
+        stay: Math.max(0, 100 - fuelRatio - foodRatio),
+      },
+    },
+  }
+}
+
+function generateProvinceTrips(coreTrips: TripDetail[]) {
+  const existingSlugs = new Set(coreTrips.map((trip) => trip.slug))
+  return PROVINCES.map(createProvinceTrip).filter((trip) => !existingSlugs.has(trip.slug))
+}
+
+export const TRIPS: TripDetail[] = [...CORE_TRIPS, ...generateProvinceTrips(CORE_TRIPS)]
 
 export function getTripBySlug(slug: string): TripDetail | undefined {
   return TRIPS.find((trip) => trip.slug === slug)
