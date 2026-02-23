@@ -9,6 +9,7 @@ import { ThailandMapExplorerClient } from "@/components/thailand-map-explorer-cl
 import { FeaturedTrips } from "@/components/featured-trips"
 import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
+import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 
 export default function Page() {
   return (
@@ -30,6 +31,7 @@ export default function Page() {
         <CtaSection />
       </div>
       <Footer />
+      <StickyMobileCTA />
     </div>
   )
 }

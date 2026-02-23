@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowRight, Clock, MapPin, Wallet } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 import { REGIONS, getRegionBySlug, getTripsByRegion } from "@/lib/regions"
 
 type RegionPageProps = {
@@ -285,6 +286,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
       </section>
 
       <Footer />
+      <StickyMobileCTA />
     </div>
   )
 }

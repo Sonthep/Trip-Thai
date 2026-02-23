@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified, changeFrequency: "weekly", priority: 1 },
+    { url: `${baseUrl}/explore`, lastModified, changeFrequency: "weekly", priority: 0.85 },
   ]
 
   const regionPages: MetadataRoute.Sitemap = REGIONS.map((r) => ({
