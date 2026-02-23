@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
+  ArrowRight,
   Car,
   Clock,
   Coins,
@@ -20,6 +22,8 @@ import { getSiteUrl } from "@/lib/site"
 import { LeadCaptureDialog } from "@/components/lead-capture-dialog"
 import { TripPageClient } from "@/app/trip/[slug]/page-client"
 import { ShareButton } from "@/components/share-button"
+import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
 
 type TripPageProps = {
   params: Promise<{
@@ -103,12 +107,19 @@ export default async function TripPage({ params }: TripPageProps) {
     }).format(amount)
   }
 
+  const relatedTrips = TRIPS.filter(
+    (t) =>
+      t.slug !== trip.slug &&
+      (t.from === trip.from || t.to === trip.to || t.from === trip.to)
+  ).slice(0, 3)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+      <Navbar />
       {/* Track page view */}
       <TripPageClient tripSlug={trip.slug} tripName={trip.name} />
       
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-20 md:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-8 md:px-6">
         {/* Hero Section */}
         <section className="grid gap-6 md:grid-cols-[3fr,2fr] md:items-center">
           <div className="space-y-4">
@@ -344,6 +355,45 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
         </section>
 
+        {/* Related Trips */}
+        {relatedTrips.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
+              <Car className="h-4 w-4 text-orange-400" />
+              ทริปที่น่าสนใจอื่น ๆ
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {relatedTrips.map((rt) => (
+                <Link
+                  key={rt.slug}
+                  href={`/trip/${rt.slug}`}
+                  className="group flex flex-col rounded-2xl border border-white/10 bg-slate-900/80 p-4 transition-all hover:border-orange-500/40 hover:bg-slate-900"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-semibold text-white text-sm leading-snug">
+                      {rt.name}
+                    </p>
+                    <ArrowRight className="mt-0.5 h-4 w-4 flex-shrink-0 text-orange-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+                    <span className="flex items-center gap-1 rounded-full bg-white/8 px-2.5 py-1 text-white/70">
+                      <Clock className="h-3 w-3" />
+                      {rt.durationLabel.split(" ").slice(0, 3).join(" ")}
+                    </span>
+                    <span className="flex items-center gap-1 rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-200">
+                      <Coins className="h-3 w-3" />
+                      {formatCurrency(rt.budget.total)}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[11px] text-white/50">
+                    {rt.distanceKm} กม. · {rt.itinerary.length} วัน
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* CTA Footer */}
         <section className="mt-2 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent px-4 py-4 text-xs text-white/80 md:flex md:items-center md:justify-between md:gap-4">
           <div className="mb-3 space-y-1 md:mb-0">
@@ -361,6 +411,7 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
         </section>
       </div>
+      <Footer />
     </div>
   )
 }

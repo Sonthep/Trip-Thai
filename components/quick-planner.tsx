@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, ChevronDown, Fuel, UtensilsCrossed, BedDouble, Route } from "lucide-react"
 import { TRIPS } from "@/lib/trips"
@@ -39,6 +39,15 @@ export function QuickPlanner() {
   const [to, setTo] = useState("")
   const [people, setPeople] = useState(2)
   const [carIdx, setCarIdx] = useState(0)
+
+  // Pre-fill from URL params: /?from=X&to=Y#quick-planner
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const paramFrom = params.get("from")
+    const paramTo = params.get("to")
+    if (paramFrom && CITIES.includes(paramFrom)) setFrom(paramFrom)
+    if (paramTo && CITIES.includes(paramTo)) setTo(paramTo)
+  }, [])
 
   const car = CAR_TYPES[carIdx]
 
