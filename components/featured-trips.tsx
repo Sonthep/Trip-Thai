@@ -5,6 +5,32 @@ import { useState } from "react"
 import { ArrowRight, Clock, MapPin, Star, Wallet } from "lucide-react"
 import { getFeaturedTrips } from "@/lib/trips"
 
+type Season = "cool" | "hot" | "rainy" | "all"
+
+const TRIP_SEASON: Record<string, Season> = {
+  "bangkok-chiang-mai": "cool",
+  "bangkok-phuket": "cool",
+  "bangkok-khao-yai": "cool",
+  "bangkok-hua-hin": "hot",
+  "bangkok-kanchanaburi": "rainy",
+  "bangkok-ayutthaya": "hot",
+  "bangkok-pattaya": "hot",
+}
+
+const SEASON_BADGE: Record<Season, { label: string; cls: string } | undefined> = {
+  cool:  { label: "❄️ พ.ย.–ก.พ.", cls: "bg-sky-100 text-sky-700" },
+  hot:   { label: "☀️ มี.ค.–พ.ค.", cls: "bg-amber-100 text-amber-700" },
+  rainy: { label: "🌧 มิ.ย.–ต.ค.", cls: "bg-emerald-100 text-emerald-700" },
+  all:   undefined,
+}
+
+const SEASON_FILTERS = [
+  { label: "ทุกฤดู", value: "all" as Season },
+  { label: "❄️ หน้าหนาว", value: "cool" as Season },
+  { label: "☀️ หน้าร้อน", value: "hot" as Season },
+  { label: "🌧 หน้าฝน", value: "rainy" as Season },
+]
+
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":
     "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=75",
@@ -43,11 +69,11 @@ const TAG_REGION: Record<string, string> = {
 export function FeaturedTrips() {
   const trips = getFeaturedTrips()
   const [active, setActive] = useState("all")
+  const [activeSeason, setActiveSeason] = useState<Season>("all")
 
-  const filtered =
-    active === "all"
-      ? trips
-      : trips.filter((t) => TAG_REGION[t.featured.tag] === active)
+  const filtered = trips
+    .filter((t) => active === "all" || TAG_REGION[t.featured.tag] === active)
+    .filter((t) => activeSeason === "all" || TRIP_SEASON[t.slug] === activeSeason)
 
   return (
     <section className="bg-slate-50 py-20 lg:py-28">
@@ -65,8 +91,26 @@ export function FeaturedTrips() {
           </p>
         </div>
 
+        {/* Season filter tabs */}
+        <div className="mt-8 flex flex-wrap justify-center gap-2 border-b border-slate-100 pb-4">
+          {SEASON_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setActiveSeason(f.value)}
+              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                activeSeason === f.value
+                  ? "bg-slate-900 text-white"
+                  : "bg-white text-slate-500 shadow-sm hover:bg-slate-100"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
         {/* Filter pills */}
-        <div className="mt-10 flex flex-wrap justify-center gap-2">
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
           {FILTERS.map((f) => (
             <button
               key={f.value}
@@ -103,9 +147,18 @@ export function FeaturedTrips() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                   {/* Tag badge */}
-                  <span className="absolute right-3 top-3 rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">
+                  <span className="absolute left-3 top-3 rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white">
                     {trip.featured.tag}
                   </span>
+
+                  {/* Season badge */}
+                  {SEASON_BADGE[TRIP_SEASON[trip.slug] ?? "all"] && (
+                    <span className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                      SEASON_BADGE[TRIP_SEASON[trip.slug] ?? "all"]!.cls
+                    }`}>
+                      {SEASON_BADGE[TRIP_SEASON[trip.slug] ?? "all"]!.label}
+                    </span>
+                  )}
 
                   {/* Fake rating for social proof */}
                   <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-xs text-white backdrop-blur-sm">
