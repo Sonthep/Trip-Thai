@@ -7,6 +7,7 @@ import { Footer } from "@/components/footer"
 import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 import { REGIONS, getRegionBySlug, getTripsByRegion } from "@/lib/regions"
 import { getSiteUrl } from "@/lib/site"
+import Image from "next/image"
 
 type RegionPageProps = {
   params: Promise<{ slug: string }>
@@ -84,11 +85,13 @@ export default async function RegionPage({ params }: RegionPageProps) {
 
       {/* ── Hero ────────────────────────────────────────────── */}
       <section className="relative h-[56vh] min-h-[400px] overflow-hidden lg:h-[65vh]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={region.heroImg}
           alt={region.name}
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 to-transparent" />

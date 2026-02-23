@@ -23,6 +23,7 @@ import { TripPageClient } from "@/app/trip/[slug]/page-client"
 import { ShareButton } from "@/components/share-button"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import Image from "next/image"
 
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
@@ -181,11 +182,13 @@ export default async function TripPage({ params }: TripPageProps) {
 
       {/* ── Full-bleed Hero Photo ──────────────────────────── */}
       <section className="relative h-[52vh] min-h-[360px] overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={photoUrl}
           alt={trip.name}
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="100vw"
+          className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 to-transparent" />
