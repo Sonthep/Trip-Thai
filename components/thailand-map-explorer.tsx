@@ -2,11 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { GeoJSON, MapContainer, useMap } from "react-leaflet"
-import type { GeoJsonObject } from "geojson"
-import type { Layer, PathOptions, StyleFunction } from "leaflet"
-import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 
 type TouristPlace = {
   id: string
@@ -39,7 +35,7 @@ type FeatureCollectionLike = {
   features: FeatureLike[]
 }
 
-type InteractiveLayer = Layer & {
+type InteractiveLayer = {
   bindTooltip: (content: string, options: Record<string, unknown>) => void
   on: (handlers: {
     mouseover: () => void
@@ -567,128 +563,238 @@ export function ThailandMapExplorer() {
     })
   }
 
+  const REGION_PILL_COLORS: Record<Region, string> = {
+    all: "bg-slate-900 text-white border-slate-900",
+    north: "bg-amber-500 text-white border-amber-500",
+    northeast: "bg-orange-500 text-white border-orange-500",
+    central: "bg-sky-500 text-white border-sky-500",
+    south: "bg-rose-500 text-white border-rose-500",
+  }
+
+  const CATEGORY_ICONS: Record<TouristPlace["category"], string> = {
+    nature: "🌿",
+    temple: "🛕",
+    culture: "🎭",
+    food: "🍜",
+    beach: "🏖️",
+    viewpoint: "🌅",
+  }
+
+  const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
+
   return (
-    <section className="bg-slate-200 py-4 md:py-6">
-      <div className="mx-auto max-w-[1280px] px-2 md:px-4">
-        <div className="relative h-[86vh] min-h-[640px] overflow-hidden rounded-2xl border border-white/80 bg-slate-300 shadow-xl shadow-slate-500/20">
-          <MapContainer
-            center={THAILAND_CENTER}
-            zoom={6}
-            minZoom={5}
-            maxZoom={8}
-            scrollWheelZoom
-            zoomControl={false}
-            attributionControl={false}
-            className="h-full w-full"
-            style={{ backgroundColor: "#cbd5e1" }}
-          >
-            <FitThailandBounds data={geoData} />
-            {geoData && (
-              <GeoJSON
-                key={`${selectedProvince}-${selectedRegion}`}
-                data={geoData as unknown as GeoJsonObject}
-                style={styleForProvince as StyleFunction<PathOptions>}
-                onEachFeature={onEachProvince}
-              />
-            )}
-          </MapContainer>
+    <section id="explore" className="py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-4 lg:px-6">
 
-          <Card className="absolute left-3 top-3 z-[999] w-[360px] border-slate-200 bg-white/96 shadow-xl backdrop-blur md:left-5 md:top-5">
-            <CardContent className="space-y-3 p-4">
-              <div>
-                <CardTitle className="text-base text-slate-900">แผนที่ท่องเที่ยวประเทศไทย (4 ภาค)</CardTitle>
-                <p className="text-xs text-slate-500">คลิกจังหวัดบนแผนที่เพื่อดูสถานที่แนะนำ</p>
-              </div>
+        {/* Section header */}
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-wider text-orange-500">
+            Explore Thailand
+          </p>
+          <h2 className="mt-3 text-balance text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+            77 จังหวัด · 4 ภาค · ไม่รู้จะไปไหนดี?
+          </h2>
+          <p className="mt-4 text-pretty text-slate-500">
+            คลิกจังหวัดบนแผนที่เพื่อดูสถานที่แนะนำ กรองตามภาค หรือค้นหาตามสิ่งที่อยากเห็น
+          </p>
+        </div>
 
+        {/* Split-column layout: sidebar + map */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+
+          {/* LEFT PANEL — control sidebar */}
+          <div className="flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60">
+
+            {/* Search */}
+            <div>
+              <label htmlFor="province-search" className="mb-1.5 block text-xs font-semibold uppercase tracking-widest text-slate-400">
+                ค้นหา
+              </label>
               <Input
+                id="province-search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="ค้นหาจังหวัดหรือสถานที่..."
-                className="h-9 border-slate-300 bg-white text-xs text-slate-900 placeholder:text-slate-400"
+                placeholder="จังหวัด หรือสถานที่..."
+                className="border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:ring-orange-400"
               />
+            </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
+            {/* Region filter pills */}
+            <div>
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                กรองตามภาค
+              </p>
+              <div className="flex flex-wrap gap-2">
                 {(["all", "north", "northeast", "central", "south"] as Region[]).map((region) => {
                   const isActive = selectedRegion === region
-                  const provinceCount =
+                  const count =
                     region === "all"
                       ? provinceSummary.length
                       : (regionStats.get(region as Exclude<Region, "all">) ?? 0)
-
                   return (
                     <button
                       key={region}
                       type="button"
                       onClick={() => {
                         setSelectedRegion(region)
-                        if (region === "all") {
-                          return
-                        }
                         setSelectedProvince("")
                         setHoveredProvince("")
                       }}
-                      className={`rounded-md border px-2 py-1.5 text-xs font-medium transition ${
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
                         isActive
-                          ? "border-orange-300 bg-orange-100 text-orange-700"
-                          : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                          ? REGION_PILL_COLORS[region]
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white"
                       }`}
                     >
-                      {regionLabel(region)} ({provinceCount})
+                      {regionLabel(region)}
+                      <span className="ml-1.5 opacity-70">{count}</span>
                     </button>
                   )
                 })}
               </div>
+            </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                <Badge variant="secondary" className="bg-slate-100 text-[11px] text-slate-700">
-                  จังหวัด {filteredProvinces.length}
-                </Badge>
-                <Badge variant="secondary" className="bg-slate-100 text-[11px] text-slate-700">
-                  สถานที่ {places.length}
-                </Badge>
-                {selectedProvince && (
-                  <Badge variant="secondary" className="bg-orange-100 text-[11px] text-orange-700">
-                    {selectedProvince}
-                  </Badge>
+            {/* Selected province callout */}
+            {selectedProvince ? (
+              <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400">จังหวัดที่เลือก</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-900">{selectedProvince}</p>
+                {selectedProvinceMeta && (
+                  <p className="text-xs text-slate-500">
+                    {regionLabel(selectedProvinceMeta.region)} · {selectedProvinceMeta.placeCount} สถานที่
+                  </p>
                 )}
               </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-400">
+                คลิกจังหวัดบนแผนที่หรือในรายการด้านล่าง
+              </div>
+            )}
 
-              {isLoading && <p className="text-xs text-slate-500">กำลังโหลดข้อมูล...</p>}
-              {error && <p className="text-xs text-red-500">{error}</p>}
-
-              {!isLoading && !error && (
-                <>
-                  <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-1.5">
-                    {filteredProvinces.map((province) => (
+            {/* Province list */}
+            <div className="flex-1">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                รายชื่อจังหวัด ({filteredProvinces.length})
+              </p>
+              {isLoading ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-9 animate-pulse rounded-xl bg-slate-100" />
+                  ))}
+                </div>
+              ) : (
+                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+                  {filteredProvinces.map((province) => {
+                    const isActive = province.province === selectedProvince
+                    return (
                       <button
                         key={province.province}
                         type="button"
                         onClick={() => setSelectedProvince(province.province)}
-                        className={`flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-left text-xs ${
-                          province.province === selectedProvince
-                            ? "bg-orange-500/20 text-orange-700"
-                            : "text-slate-700 hover:bg-slate-200/80"
+                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-all duration-100 ${
+                          isActive
+                            ? "bg-orange-500 font-semibold text-white shadow-md shadow-orange-200"
+                            : "text-slate-700 hover:bg-slate-50"
                         }`}
                       >
                         <span>{province.province}</span>
-                        <span>{province.placeCount}</span>
+                        <span className={`text-xs ${isActive ? "text-orange-100" : "text-slate-400"}`}>
+                          {province.placeCount} แห่ง
+                        </span>
                       </button>
-                    ))}
-                  </div>
-
-                  <div className="max-h-44 space-y-1.5 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-2">
-                    {selectedPlaces.slice(0, 6).map((place) => (
-                      <div key={place.id} className="rounded-md border border-slate-200 bg-white p-2.5">
-                        <p className="text-xs font-semibold text-slate-800">{place.name}</p>
-                        <p className="mt-0.5 text-[11px] text-slate-500">{place.category}</p>
-                      </div>
-                    ))}
-                    {selectedPlaces.length === 0 && <p className="text-xs text-slate-500">ไม่พบข้อมูล</p>}
-                  </div>
-                </>
+                    )
+                  })}
+                  {filteredProvinces.length === 0 && (
+                    <p className="py-4 text-center text-xs text-slate-400">ไม่พบจังหวัดที่ตรงกัน</p>
+                  )}
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Place cards */}
+            {selectedPlaces.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                  สถานที่แนะนำ
+                </p>
+                <div className="max-h-52 space-y-2 overflow-y-auto pr-1">
+                  {selectedPlaces.slice(0, 8).map((place) => (
+                    <div
+                      key={place.id}
+                      className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 transition-colors hover:border-orange-100 hover:bg-orange-50/50"
+                    >
+                      <span className="mt-0.5 text-base leading-none">{CATEGORY_ICONS[place.category]}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-slate-800">{place.name}</p>
+                        <p className="text-[11px] capitalize text-slate-400">{place.category}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-500">{error}</p>}
+          </div>
+
+          {/* RIGHT PANEL — map */}
+          <div className="relative min-h-[540px] overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 lg:min-h-0">
+
+            {/* Region legend */}
+            <div className="pointer-events-none absolute bottom-4 left-4 z-[999] flex flex-col gap-1.5 rounded-2xl border border-white/70 bg-white/80 px-3 py-2.5 backdrop-blur-sm">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">ภาค</p>
+              {(["north", "northeast", "central", "south"] as Exclude<Region, "all">[]).map((r) => (
+                <div key={r} className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: regionColor(r) }} />
+                  <span className="text-[11px] text-slate-700">{regionLabel(r)}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Province hover callout */}
+            {(selectedProvince || hoveredProvince) && (
+              <div className="pointer-events-none absolute right-4 top-4 z-[999] max-w-[200px] rounded-2xl border border-white/60 bg-white/90 px-3.5 py-2.5 backdrop-blur-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  {hoveredProvince ? "ชี้ที่จังหวัด" : "เลือกแล้ว"}
+                </p>
+                <p className="text-base font-bold text-slate-900">{hoveredProvince || selectedProvince}</p>
+              </div>
+            )}
+
+            <MapContainer
+              center={THAILAND_CENTER}
+              zoom={6}
+              minZoom={5}
+              maxZoom={8}
+              scrollWheelZoom
+              zoomControl={false}
+              attributionControl={false}
+              className="h-[640px] w-full"
+              style={{ backgroundColor: "#e2e8f0" }}
+            >
+              <FitThailandBounds data={geoData} />
+              {geoData && (
+                <GeoJSON
+                  key={`${selectedProvince}-${selectedRegion}`}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  data={geoData as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  style={styleForProvince as any}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  onEachFeature={onEachProvince as any}
+                />
+              )}
+            </MapContainer>
+
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-slate-100/80">
+                <div className="text-center">
+                  <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-orange-500" />
+                  <p className="mt-3 text-sm font-medium text-slate-500">กำลังโหลดแผนที่...</p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
