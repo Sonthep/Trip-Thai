@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { GeoJSON, MapContainer, useMap } from "react-leaflet"
+import type { GeoJsonObject } from "geojson"
+import type { Layer, PathOptions, StyleFunction } from "leaflet"
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +37,15 @@ type FeatureLike = {
 
 type FeatureCollectionLike = {
   features: FeatureLike[]
+}
+
+type InteractiveLayer = Layer & {
+  bindTooltip: (content: string, options: Record<string, unknown>) => void
+  on: (handlers: {
+    mouseover: () => void
+    mouseout: () => void
+    click: () => void
+  }) => void
 }
 
 const THAILAND_CENTER: [number, number] = [13.2, 101]
@@ -525,7 +536,7 @@ export function ThailandMapExplorer() {
     }
   }
 
-  const onEachProvince = (feature: FeatureLike, layer: any) => {
+  const onEachProvince = (feature: FeatureLike, layer: InteractiveLayer) => {
     const provinceName = resolveProvinceName(feature)
     if (!provinceName || !layer) {
       return
@@ -575,8 +586,8 @@ export function ThailandMapExplorer() {
             {geoData && (
               <GeoJSON
                 key={`${selectedProvince}-${selectedRegion}`}
-                data={geoData as any}
-                style={styleForProvince as any}
+                data={geoData as unknown as GeoJsonObject}
+                style={styleForProvince as StyleFunction<PathOptions>}
                 onEachFeature={onEachProvince}
               />
             )}

@@ -108,6 +108,48 @@ ADMIN_EMAIL=admin@yourdomain.com
 - `click_share` - เมื่อกดปุ่มแชร์
 - `calculate_trip` - เมื่อคำนวณทริปจาก Quick Planner
 
+## 🧪 Smoke Test (Lead)
+
+รันเซิร์ฟเวอร์ก่อน แล้วทดสอบ flow `POST /api/submit-lead` + ตรวจข้อมูลใน DB:
+
+```bash
+npm run dev
+npm run smoke:lead
+```
+
+ถ้าต้องการเปลี่ยนปลายทาง API สามารถใส่ `SMOKE_BASE_URL` ได้ เช่น:
+
+```bash
+SMOKE_BASE_URL=https://your-domain.com npm run smoke:lead
+```
+
+## 🔒 Admin Leads API
+
+Endpoint: `GET /api/admin/leads`
+
+- ต้องส่ง header `x-admin-token: <ADMIN_API_TOKEN>`
+- Query params ที่รองรับ:
+  - `limit` (ค่าเริ่มต้น 50, สูงสุด 200)
+  - `tripSlug` (กรองตาม slug)
+  - `email` (ค้นหาบางส่วนแบบ case-insensitive)
+  - `cursor` (id ของรายการสุดท้ายจากหน้าเดิม สำหรับ pagination)
+
+Response จะมี `nextCursor` กลับมา ถ้าไม่เป็น `null` ให้นำไปเรียกหน้าถัดไปได้
+
+ตัวอย่าง:
+
+```bash
+curl -H "x-admin-token: $ADMIN_API_TOKEN" \
+  "http://localhost:3000/api/admin/leads?limit=20&tripSlug=chiang-mai-3d2n"
+```
+
+ตัวอย่างหน้าถัดไป:
+
+```bash
+curl -H "x-admin-token: $ADMIN_API_TOKEN" \
+  "http://localhost:3000/api/admin/leads?limit=20&cursor=<nextCursor>"
+```
+
 ## 🗺️ Available Trips
 
 1. กรุงเทพ → เชียงใหม่ (3 วัน 2 คืน)

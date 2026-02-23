@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { Resend } from "resend"
+import { db } from "@/lib/db"
 
 // Initialize Resend only if API key is available
 const resend = process.env.RESEND_API_KEY 
@@ -8,7 +9,7 @@ const resend = process.env.RESEND_API_KEY
 
 export async function POST(request: Request) {
   try {
-    const { email, tripSlug, tripName } = await request.json()
+    const { email, tripSlug, tripName, source } = await request.json()
 
     // Validate input
     if (!email || !tripSlug || !tripName) {
@@ -26,6 +27,27 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    const normalizedEmail = String(email).trim().toLowerCase()
+
+    await db.lead.upsert({
+      where: {
+        email_tripSlug: {
+          email: normalizedEmail,
+          tripSlug,
+        },
+      },
+      update: {
+        tripName,
+        source: typeof source === "string" ? source : undefined,
+      },
+      create: {
+        email: normalizedEmail,
+        tripSlug,
+        tripName,
+        source: typeof source === "string" ? source : undefined,
+      },
+    })
 
     // Send email notification (if RESEND_API_KEY is configured)
     if (resend) {
@@ -72,9 +94,6 @@ export async function POST(request: Request) {
         // Don't fail the request if email fails, just log it
       }
     }
-
-    // In production, you would also save to database here
-    // await db.leads.create({ email, tripSlug, tripName, createdAt: new Date() })
 
     return NextResponse.json({
       success: true,

@@ -1,5 +1,11 @@
 type EventParams = Record<string, string | number | boolean | undefined>
 
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void
+  }
+}
+
 /**
  * Track custom events for analytics
  * Currently logs to console in development
@@ -13,8 +19,8 @@ export function trackEvent(eventName: string, params?: EventParams) {
 
   // In production, send to analytics service
   // Example: Google Analytics 4
-  if (typeof window !== "undefined" && (window as any).gtag) {
-    ;(window as any).gtag("event", eventName, params)
+  if (typeof window !== "undefined" && window.gtag) {
+    window.gtag("event", eventName, params)
   }
 
   // You can add other analytics providers here
