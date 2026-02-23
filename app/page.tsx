@@ -2,6 +2,7 @@ import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
 import { SocialProof } from "@/components/social-proof"
 import { HowItWorks } from "@/components/how-it-works"
+import { ExperienceBento } from "@/components/experience-bento"
 import { ThailandMapExplorerClient } from "@/components/thailand-map-explorer-client"
 import { FeaturedTrips } from "@/components/featured-trips"
 import { CtaSection } from "@/components/cta-section"
@@ -16,6 +17,7 @@ export default function Page() {
         <SocialProof />
         <HowItWorks />
       </div>
+      <ExperienceBento />
       <div className="bg-slate-50">
         <ThailandMapExplorerClient />
       </div>
