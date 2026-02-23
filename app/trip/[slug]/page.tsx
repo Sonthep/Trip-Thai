@@ -11,7 +11,6 @@ import {
   Fuel,
   Map,
   MapPin,
-  Plane,
   Utensils,
   BedDouble,
 } from "lucide-react"
@@ -24,6 +23,26 @@ import { TripPageClient } from "@/app/trip/[slug]/page-client"
 import { ShareButton } from "@/components/share-button"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+
+const TRIP_PHOTOS: Record<string, string> = {
+  "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
+  "bangkok-chiang-rai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
+  "bangkok-phuket":       "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=1200&q=80",
+  "bangkok-krabi":        "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=1200&q=80",
+  "bangkok-koh-samui":    "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
+  "bangkok-hua-hin":      "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
+  "bangkok-pattaya":      "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
+  "bangkok-kanchanaburi": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+  "bangkok-ayutthaya":    "https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=1200&q=80",
+  "bangkok-khao-yai":     "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+  "chiang-mai-pai":       "https://images.unsplash.com/photo-1531761535209-180857e963b9?w=1200&q=80",
+  "chiang-mai-chiang-rai":"https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&q=80",
+  "chiang-mai-lampang":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
+  "phuket-krabi":         "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=1200&q=80",
+  "phuket-koh-samui":     "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=1200&q=80",
+  "phuket-phang-nga":     "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=1200&q=80",
+}
+const FALLBACK_PHOTO = "https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=1200&q=80"
 
 type TripPageProps = {
   params: Promise<{
@@ -92,6 +111,7 @@ export default async function TripPage({ params }: TripPageProps) {
   }
 
   const { budget } = trip
+  const baseUrl = getSiteUrl()
   const budgetData = [
     { key: "fuel", name: "ค่าน้ำมัน", value: budget.fuel },
     { key: "toll", name: "ค่าทางด่วน", value: budget.toll },
@@ -113,69 +133,121 @@ export default async function TripPage({ params }: TripPageProps) {
       (t.from === trip.from || t.to === trip.to || t.from === trip.to)
   ).slice(0, 3)
 
+  const photoUrl = TRIP_PHOTOS[trip.slug] ?? FALLBACK_PHOTO
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TouristTrip",
+        "@id": `${baseUrl}/trip/${trip.slug}`,
+        name: trip.name,
+        description: `แผนทริป ${trip.from} ไป ${trip.to} ระยะทาง ${trip.distanceKm} กม.`,
+        url: `${baseUrl}/trip/${trip.slug}`,
+        image: photoUrl,
+        touristType: "Road Trip",
+        itinerary: trip.itinerary.map((day) => ({
+          "@type": "TouristAttraction",
+          name: day.title,
+        })),
+        offers: {
+          "@type": "Offer",
+          price: trip.budget.total,
+          priceCurrency: "THB",
+          description: trip.budgetRangeLabel,
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "หน้าหลัก", item: baseUrl },
+          { "@type": "ListItem", position: 2, name: "ทริปทั้งหมด", item: `${baseUrl}/#featured-trips` },
+          { "@type": "ListItem", position: 3, name: trip.name, item: `${baseUrl}/trip/${trip.slug}` },
+        ],
+      },
+    ],
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-white">
+      {/* JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <Navbar />
-      {/* Track page view */}
       <TripPageClient tripSlug={trip.slug} tripName={trip.name} />
-      
+
+      {/* ── Full-bleed Hero Photo ──────────────────────────── */}
+      <section className="relative h-[52vh] min-h-[360px] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={photoUrl}
+          alt={trip.name}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 to-transparent" />
+
+        {/* Breadcrumb */}
+        <div className="absolute left-0 top-0 px-6 pt-6">
+          <nav className="flex items-center gap-2 text-xs text-white/50" aria-label="breadcrumb">
+            <Link href="/" className="transition-colors hover:text-white">หน้าหลัก</Link>
+            <span>/</span>
+            <Link href="/explore" className="transition-colors hover:text-white">สำรวจ</Link>
+            <span>/</span>
+            <span className="text-white/80">{trip.name}</span>
+          </nav>
+        </div>
+
+        {/* Title overlay */}
+        <div className="absolute bottom-0 left-0 px-6 pb-10 lg:px-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 ring-1 ring-emerald-500/40 mb-3">
+            <Car className="h-3 w-3" /> Road Trip
+          </div>
+          <h1 className="text-3xl font-bold text-white md:text-4xl lg:text-5xl">{trip.name}</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Badge className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+              <Clock className="h-3.5 w-3.5" />{trip.durationLabel}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1.5 rounded-full border-amber-400/40 bg-amber-400/10 px-3 py-1 text-[11px] font-medium text-amber-200 backdrop-blur-sm">
+              <Coins className="h-3.5 w-3.5" />{trip.budgetRangeLabel}
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-1.5 rounded-full border-sky-400/40 bg-sky-400/10 px-3 py-1 text-[11px] font-medium text-sky-200 backdrop-blur-sm">
+              <MapPin className="h-3.5 w-3.5" />{trip.distanceKm} กม.
+            </Badge>
+          </div>
+        </div>
+      </section>
+
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-16 pt-8 md:px-6">
-        {/* Hero Section */}
-        <section className="grid gap-6 md:grid-cols-[3fr,2fr] md:items-center">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-200 ring-1 ring-emerald-500/40">
-              <Plane className="h-3.5 w-3.5" />
-              <span>Road Trip แนะนำโดย TripThai</span>
-            </div>
-
-            <h1 className="text-balance text-3xl font-semibold tracking-tight text-white md:text-4xl lg:text-5xl">
-              {trip.name}
-            </h1>
-
-            <p className="max-w-xl text-sm text-white/70 md:text-base">
+        {/* Actions + description */}
+        <section className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-10">
+          <div className="space-y-3 md:max-w-xl">
+            <p className="text-sm text-white/70 md:text-base">
               ทริปขับรถยอดนิยมจาก {trip.from} ไป {trip.to} พร้อมสรุปงบประมาณเบื้องต้น
               และแพลนเที่ยววันต่อวันที่ปรับใช้ได้จริง เหมาะสำหรับทริป 2–4 คน
             </p>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white">
-                <Clock className="h-3.5 w-3.5" />
-                {trip.durationLabel}
-              </Badge>
-
-              <Badge
-                variant="outline"
-                className="flex items-center gap-1.5 rounded-full border-amber-400/50 bg-amber-400/10 px-3 py-1 text-[11px] font-medium text-amber-100"
-              >
-                <Coins className="h-3.5 w-3.5" />
-                {trip.budgetRangeLabel}
-              </Badge>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/75">
-              <div className="flex items-center gap-2">
-                <Car className="h-3.5 w-3.5" />
-                <span>เหมาะสำหรับการขับรถส่วนตัว</span>
-              </div>
-              <div className="h-3 w-px bg-white/15" />
-              <div className="flex items-center gap-2">
-                <MapPin className="h-3.5 w-3.5" />
-                <span>{trip.itinerary.length} วัน / แวะเที่ยวหลายจุดระหว่างทาง</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-2">
-              <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
-              <ShareButton tripSlug={trip.slug} />
+            <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70 w-fit">
+              <Car className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>เหมาะสำหรับการขับรถส่วนตัว</span>
+              <span className="h-3 w-px bg-white/15" />
+              <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>{trip.itinerary.length} วัน / แวะเที่ยวหลายจุดระหว่างทาง</span>
             </div>
           </div>
+          <div className="flex flex-wrap gap-3 md:flex-shrink-0">
+            <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
+            <ShareButton tripSlug={trip.slug} />
+          </div>
+        </section>
 
-          {/* Budget highlight on the right */}
+        {/* Budget Summary Card */}
+        <section>
           <Card className="border-white/10 bg-slate-900/80 shadow-xl shadow-black/30">
             <CardHeader className="pb-3">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">
-                งบประมาณรวมสำหรับทั้งทริป
-              </p>
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">งบประมาณรวมสำหรับทั้งทริป</p>
               <CardTitle className="mt-2 text-2xl font-semibold text-white md:text-3xl">
                 {formatCurrency(budget.total)}
               </CardTitle>
@@ -183,35 +255,21 @@ export default async function TripPage({ params }: TripPageProps) {
                 ประมาณการสำหรับ {trip.itinerary.length} วัน ({trip.budgetRangeLabel})
               </p>
             </CardHeader>
-            <CardContent className="space-y-3 text-xs text-white/75">
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Fuel className="h-3.5 w-3.5 text-amber-400" />
-                  ค่าน้ำมัน
-                </span>
-                <span className="font-medium text-white">{formatCurrency(budget.fuel)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Coins className="h-3.5 w-3.5 text-sky-400" />
-                  ค่าทางด่วน
-                </span>
-                <span className="font-medium text-white">{formatCurrency(budget.toll)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Utensils className="h-3.5 w-3.5 text-emerald-400" />
-                  ค่าอาหาร (โดยประมาณ)
-                </span>
-                <span className="font-medium text-white">{formatCurrency(budget.food)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <BedDouble className="h-3.5 w-3.5 text-violet-400" />
-                  ค่าที่พัก (โดยประมาณ)
-                </span>
-                <span className="font-medium text-white">{formatCurrency(budget.accommodation)}</span>
-              </div>
+            <CardContent className="grid grid-cols-2 gap-3 text-xs text-white/75 sm:grid-cols-4">
+              {[
+                { icon: Fuel, color: "text-amber-400", label: "ค่าน้ำมัน", value: budget.fuel },
+                { icon: Coins, color: "text-sky-400", label: "ค่าทางด่วน", value: budget.toll },
+                { icon: Utensils, color: "text-emerald-400", label: "ค่าอาหาร", value: budget.food },
+                { icon: BedDouble, color: "text-violet-400", label: "ค่าที่พัก", value: budget.accommodation },
+              ].map(({ icon: Icon, color, label, value }) => (
+                <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Icon className={`h-3.5 w-3.5 ${color}`} />
+                    <span>{label}</span>
+                  </div>
+                  <p className="font-semibold text-white text-sm">{formatCurrency(value)}</p>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </section>

@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, ChevronDown, Fuel, UtensilsCrossed, BedDouble, Route } from "lucide-react"
+import { ArrowRight, ArrowLeftRight, ChevronDown, Fuel, UtensilsCrossed, BedDouble, Route } from "lucide-react"
 import { TRIPS } from "@/lib/trips"
 
 const CAR_TYPES = [
@@ -136,9 +136,9 @@ export function QuickPlanner() {
 
         {/* Input row */}
         <div className="rounded-2xl border border-orange-100 bg-white p-4 shadow-md shadow-orange-100/50 lg:p-6">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="flex flex-wrap items-end gap-3">
             {/* From */}
-            <div className="relative">
+            <div className="flex-1 min-w-[140px]">
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 จากเมือง
               </label>
@@ -150,17 +150,25 @@ export function QuickPlanner() {
                 >
                   <option value="">เลือกต้นทาง</option>
                   {CITIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
 
+            {/* Swap button */}
+            <button
+              type="button"
+              onClick={() => { const tmp = from; setFrom(to); setTo(tmp) }}
+              title="สลับต้นทาง-ปลายทาง"
+              className="mb-px flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-400 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-500 active:scale-95"
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+            </button>
+
             {/* To */}
-            <div className="relative">
+            <div className="flex-1 min-w-[140px]">
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 ถึงเมือง
               </label>
@@ -172,9 +180,7 @@ export function QuickPlanner() {
                 >
                   <option value="">เลือกปลายทาง</option>
                   {CITIES.filter((c) => c !== from).map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -182,7 +188,7 @@ export function QuickPlanner() {
             </div>
 
             {/* People */}
-            <div>
+            <div className="flex-1 min-w-[120px]">
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 จำนวนคน
               </label>
@@ -193,9 +199,7 @@ export function QuickPlanner() {
                   className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-9 text-sm font-medium text-slate-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                 >
                   {[1, 2, 3, 4, 5, 6].map((n) => (
-                    <option key={n} value={n}>
-                      {n} คน
-                    </option>
+                    <option key={n} value={n}>{n} คน</option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -203,7 +207,7 @@ export function QuickPlanner() {
             </div>
 
             {/* Car type */}
-            <div>
+            <div className="flex-1 min-w-[140px]">
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 ประเภทรถ
               </label>
@@ -214,8 +218,7 @@ export function QuickPlanner() {
                   className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-9 text-sm font-medium text-slate-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                 >
                   {CAR_TYPES.map((c, i) => (
-                    <option key={i} value={i}>
-                      {c.label}
+                    <option key={i} value={i}>{c.label}
                     </option>
                   ))}
                 </select>

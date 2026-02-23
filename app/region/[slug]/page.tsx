@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 import { REGIONS, getRegionBySlug, getTripsByRegion } from "@/lib/regions"
+import { getSiteUrl } from "@/lib/site"
 
 type RegionPageProps = {
   params: Promise<{ slug: string }>
@@ -44,9 +45,41 @@ export default async function RegionPage({ params }: RegionPageProps) {
   if (!region) notFound()
 
   const trips = getTripsByRegion(region)
+  const baseUrl = getSiteUrl()
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TouristDestination",
+        "@id": `${baseUrl}/region/${region.slug}`,
+        name: region.name,
+        description: region.description,
+        url: `${baseUrl}/region/${region.slug}`,
+        image: region.heroImg,
+        touristType: "Road Trip",
+        includesAttraction: region.stops.map((stop) => ({
+          "@type": "TouristAttraction",
+          name: stop,
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "หน้าหลัก", item: baseUrl },
+          { "@type": "ListItem", position: 2, name: "สำรวจ", item: `${baseUrl}/explore` },
+          { "@type": "ListItem", position: 3, name: region.name, item: `${baseUrl}/region/${region.slug}` },
+        ],
+      },
+    ],
+  }
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
 
       {/* ── Hero ────────────────────────────────────────────── */}
@@ -65,7 +98,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
           <nav className="flex items-center gap-2 text-xs text-white/50">
             <Link href="/" className="hover:text-white">หน้าหลัก</Link>
             <span>/</span>
-            <Link href="/#explore" className="hover:text-white">สำรวจ</Link>
+            <Link href="/explore" className="hover:text-white">สำรวจ</Link>
             <span>/</span>
             <span className="text-white/80">{region.name}</span>
           </nav>
