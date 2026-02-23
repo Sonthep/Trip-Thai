@@ -1,8 +1,11 @@
 "use client"
 
+import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
+import { ArrowRight, ChevronLeft } from "lucide-react"
 import { GeoJSON, MapContainer, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
+import { TRIPS } from "@/lib/trips"
 
 type TouristPlace = {
   id: string
@@ -582,6 +585,18 @@ export function ThailandMapExplorer() {
 
   const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
 
+  // Find trips that involve the selected province
+  const provinceTrips = useMemo(() => {
+    if (!selectedProvince) return []
+    const norm = (s: string) => s.replace(/จังหวัด/g, "").trim()
+    const prov = norm(selectedProvince)
+    return TRIPS.filter((t) => {
+      const from = norm(t.from)
+      const to = norm(t.to)
+      return from.includes(prov) || prov.includes(from) || to.includes(prov) || prov.includes(to)
+    }).slice(0, 4)
+  }, [selectedProvince])
+
   return (
     <section id="explore" className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
@@ -654,84 +669,135 @@ export function ThailandMapExplorer() {
               </div>
             </div>
 
-            {/* Selected province callout */}
             {selectedProvince ? (
-              <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400">จังหวัดที่เลือก</p>
-                <p className="mt-0.5 text-lg font-bold text-slate-900">{selectedProvince}</p>
-                {selectedProvinceMeta && (
-                  <p className="text-xs text-slate-500">
-                    {regionLabel(selectedProvinceMeta.region)} · {selectedProvinceMeta.placeCount} สถานที่
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-400">
-                คลิกจังหวัดบนแผนที่หรือในรายการด้านล่าง
-              </div>
-            )}
-
-            {/* Province list */}
-            <div className="flex-1">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                รายชื่อจังหวัด ({filteredProvinces.length})
-              </p>
-              {isLoading ? (
-                <div className="space-y-2">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-9 animate-pulse rounded-xl bg-slate-100" />
-                  ))}
+              /* ── Province Detail Panel ─────────────────────── */
+              <div className="flex flex-1 flex-col gap-4">
+                {/* Back + province header */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedProvince(""); setHoveredProvince("") }}
+                    className="mb-3 flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-slate-700"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    กลับ
+                  </button>
+                  <div className="rounded-2xl border border-orange-100 bg-orange-50 px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-orange-400">จังหวัดที่เลือก</p>
+                    <p className="mt-0.5 text-xl font-bold text-slate-900">{selectedProvince}</p>
+                    {selectedProvinceMeta && (
+                      <p className="text-xs text-slate-500">
+                        {regionLabel(selectedProvinceMeta.region)} · {selectedProvinceMeta.placeCount} สถานที่
+                      </p>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
-                  {filteredProvinces.map((province) => {
-                    const isActive = province.province === selectedProvince
-                    return (
-                      <button
-                        key={province.province}
-                        type="button"
-                        onClick={() => setSelectedProvince(province.province)}
-                        className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-all duration-100 ${
-                          isActive
-                            ? "bg-orange-500 font-semibold text-white shadow-md shadow-orange-200"
-                            : "text-slate-700 hover:bg-slate-50"
-                        }`}
-                      >
-                        <span>{province.province}</span>
-                        <span className={`text-xs ${isActive ? "text-orange-100" : "text-slate-400"}`}>
-                          {province.placeCount} แห่ง
+
+                {/* Highlight places as chips */}
+                {selectedPlaces.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      สถานที่แนะนำ
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedPlaces.slice(0, 6).map((place) => (
+                        <span
+                          key={place.id}
+                          className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600"
+                        >
+                          {CATEGORY_ICONS[place.category]} {place.name}
                         </span>
-                      </button>
-                    )
-                  })}
-                  {filteredProvinces.length === 0 && (
-                    <p className="py-4 text-center text-xs text-slate-400">ไม่พบจังหวัดที่ตรงกัน</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Matching routes */}
+                <div className="flex-1">
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                    เส้นทางที่มี{selectedProvince}
+                  </p>
+                  {provinceTrips.length > 0 ? (
+                    <div className="space-y-2">
+                      {provinceTrips.map((trip) => (
+                        <Link
+                          key={trip.slug}
+                          href={`/trip/${trip.slug}`}
+                          className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 transition-all hover:border-orange-200 hover:bg-orange-50"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-800">{trip.name}</p>
+                            <p className="text-[11px] text-slate-400">
+                              {trip.distanceKm} กม. · {trip.featured.budgetLabel}
+                            </p>
+                          </div>
+                          <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-orange-400" />
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="rounded-xl border border-dashed border-slate-200 py-4 text-center text-xs text-slate-400">
+                      ยังไม่มีเส้นทางสำเร็จรูปสำหรับจังหวัดนี้
+                    </p>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* Place cards */}
-            {selectedPlaces.length > 0 && (
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                  สถานที่แนะนำ
-                </p>
-                <div className="max-h-52 space-y-2 overflow-y-auto pr-1">
-                  {selectedPlaces.slice(0, 8).map((place) => (
-                    <div
-                      key={place.id}
-                      className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 transition-colors hover:border-orange-100 hover:bg-orange-50/50"
-                    >
-                      <span className="mt-0.5 text-base leading-none">{CATEGORY_ICONS[place.category]}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-800">{place.name}</p>
-                        <p className="text-[11px] capitalize text-slate-400">{place.category}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* Sticky CTA */}
+                <Link
+                  href={`/?from=กรุงเทพ&to=${encodeURIComponent(selectedProvince)}#quick-planner`}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 transition-all hover:bg-orange-600"
+                >
+                  วางแผนทริป {selectedProvince}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </div>
+            ) : (
+              /* ── Default: province list ────────────────────── */
+              <>
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs text-slate-400">
+                  คลิกจังหวัดบนแผนที่หรือในรายการด้านล่าง
+                </div>
+
+                {/* Province list */}
+                <div className="flex-1">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">
+                    รายชื่อจังหวัด ({filteredProvinces.length})
+                  </p>
+                  {isLoading ? (
+                    <div className="space-y-2">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-9 animate-pulse rounded-xl bg-slate-100" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                      {filteredProvinces.map((province) => {
+                        const isActive = province.province === selectedProvince
+                        return (
+                          <button
+                            key={province.province}
+                            type="button"
+                            onClick={() => setSelectedProvince(province.province)}
+                            className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-all duration-100 ${
+                              isActive
+                                ? "bg-orange-500 font-semibold text-white shadow-md shadow-orange-200"
+                                : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span>{province.province}</span>
+                            <span className={`text-xs ${isActive ? "text-orange-100" : "text-slate-400"}`}>
+                              {province.placeCount} แห่ง
+                            </span>
+                          </button>
+                        )
+                      })}
+                      {filteredProvinces.length === 0 && (
+                        <p className="py-4 text-center text-xs text-slate-400">ไม่พบจังหวัดที่ตรงกัน</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-500">{error}</p>}
