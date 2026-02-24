@@ -45,11 +45,14 @@ export function CtaSection() {
           <div className="pointer-events-none absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-accent/8 blur-3xl" />
 
           <div className="relative z-10">
-            <h2 className="mx-auto max-w-xl text-balance text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
-              {"พร้อมออกเดินทางแล้วหรือยัง?"}
+            <p className="text-sm font-semibold uppercase tracking-widest text-orange-400">
+              เริ่มต้นฟรี · ไม่ต้องสมัครสมาชิก
+            </p>
+            <h2 className="mx-auto mt-3 max-w-xl text-balance text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
+              หยุดเดา เริ่มรู้งบจริง
             </h2>
             <p className="mx-auto mt-5 max-w-md text-pretty text-white/60">
-              {"เริ่มวางแผน Road Trip ทั่วไทยได้ฟรี คำนวณค่าใช้จ่ายและเส้นทางได้ทันที"}
+              คำนวณค่าน้ำมัน ค่าอาหาร ค่าที่พัก รวมเป็นงบทริปครบในหน้าเดียว — ใช้เวลา 30 วินาที
             </p>
             <div className="mt-9">
               <Button

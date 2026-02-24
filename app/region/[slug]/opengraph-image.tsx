@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og"
-import { getTripBySlug } from "@/lib/trips"
+import { getRegionBySlug } from "@/lib/regions"
 
 export const runtime = "edge"
 export const contentType = "image/png"
@@ -8,32 +8,29 @@ export const size = {
   height: 630,
 }
 
-const TRIP_PHOTOS: Record<string, string> = {
-  "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
-  "bangkok-chiang-rai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
-  "bangkok-phuket":       "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=1200&q=80",
-  "bangkok-krabi":        "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=1200&q=80",
-  "bangkok-hua-hin":      "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
-  "bangkok-pattaya":      "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=1200&q=80",
-  "bangkok-kanchanaburi": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
-  "bangkok-ayutthaya":    "https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=1200&q=80",
-  "bangkok-khao-yai":     "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
-  "chiang-mai-pai":       "https://images.unsplash.com/photo-1531761535209-180857e963b9?w=1200&q=80",
-  "phuket-krabi":         "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=1200&q=80",
-}
-const FALLBACK = "https://images.unsplash.com/photo-1508009603885-50cf7c8dd0d5?w=1200&q=80"
-
-type OpenGraphImageProps = {
-  params: Promise<{
-    slug: string
-  }>
+const REGION_ACCENT: Record<string, string> = {
+  north:     "#f59e0b", // amber
+  south:     "#0ea5e9", // sky
+  central:   "#10b981", // emerald
+  northeast: "#f97316", // orange
 }
 
-export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
+const REGION_EMOJI: Record<string, string> = {
+  north:     "🏔️",
+  south:     "🏖️",
+  central:   "🏛️",
+  northeast: "🌾",
+}
+
+type OGProps = {
+  params: Promise<{ slug: string }>
+}
+
+export default async function OpenGraphImage({ params }: OGProps) {
   const { slug } = await params
-  const trip = getTripBySlug(slug)
+  const region = getRegionBySlug(slug)
 
-  if (!trip) {
+  if (!region) {
     return new ImageResponse(
       (
         <div
@@ -56,7 +53,9 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
     )
   }
 
-  const photoUrl = TRIP_PHOTOS[slug] ?? FALLBACK
+  const photoUrl = `${region.heroImg.split("?")[0]}?w=1200&q=80`
+  const accent = REGION_ACCENT[slug] ?? "#f97316"
+  const emoji = REGION_EMOJI[slug] ?? "🗺️"
 
   // Fetch photo as ArrayBuffer for ImageResponse
   let photoData: ArrayBuffer | null = null
@@ -99,7 +98,7 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to right, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.70) 60%, rgba(2,6,23,0.30) 100%)",
+              "linear-gradient(to right, rgba(2,6,23,0.92) 0%, rgba(2,6,23,0.72) 55%, rgba(2,6,23,0.25) 100%)",
           }}
         />
 
@@ -115,33 +114,45 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
             color: "#ffffff",
           }}
         >
-          {/* Header */}
+          {/* Header — region badge */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div
               style={{
-                background: "rgba(249,115,22,0.25)",
-                border: "1px solid rgba(249,115,22,0.5)",
+                background: `rgba(${hexToRgb(accent)},0.20)`,
+                border: `1px solid rgba(${hexToRgb(accent)},0.50)`,
                 borderRadius: 99,
                 padding: "8px 18px",
                 fontSize: 22,
                 fontWeight: 600,
-                color: "#fb923c",
+                color: accent,
                 display: "flex",
               }}
             >
-              🚗 Road Trip
+              {emoji} {region.nameEn}
             </div>
           </div>
 
           {/* Title block */}
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ fontSize: 66, fontWeight: 800, lineHeight: 1.05, maxWidth: 700 }}>
-              {trip.name}
+            <div
+              style={{
+                fontSize: 70,
+                fontWeight: 800,
+                lineHeight: 1.05,
+                maxWidth: 680,
+              }}
+            >
+              {region.name}
             </div>
-            <div style={{ display: "flex", gap: 24, fontSize: 28, color: "#94a3b8" }}>
-              <div>{trip.durationLabel.split(" ").slice(0, 4).join(" ")}</div>
-              <div>·</div>
-              <div>{trip.distanceKm} กม.</div>
+            <div
+              style={{
+                fontSize: 30,
+                color: "#94a3b8",
+                maxWidth: 640,
+                lineHeight: 1.4,
+              }}
+            >
+              {region.tagline}
             </div>
           </div>
 
@@ -153,20 +164,44 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
               alignItems: "center",
             }}
           >
+            <div style={{ display: "flex", gap: 16 }}>
+              {/* Route count pill */}
+              <div
+                style={{
+                  background: "rgba(245,158,11,0.15)",
+                  border: "1px solid rgba(245,158,11,0.4)",
+                  borderRadius: 12,
+                  padding: "10px 20px",
+                  fontSize: 24,
+                  color: "#fcd34d",
+                  display: "flex",
+                }}
+              >
+                🛣️ {region.routeCount} เส้นทาง
+              </div>
+              {/* Budget pill */}
+              <div
+                style={{
+                  background: "rgba(16,185,129,0.15)",
+                  border: "1px solid rgba(16,185,129,0.4)",
+                  borderRadius: 12,
+                  padding: "10px 20px",
+                  fontSize: 24,
+                  color: "#6ee7b7",
+                  display: "flex",
+                }}
+              >
+                💰 {region.budgetRange}
+              </div>
+            </div>
             <div
               style={{
-                background: "rgba(245,158,11,0.15)",
-                border: "1px solid rgba(245,158,11,0.4)",
-                borderRadius: 12,
-                padding: "10px 20px",
                 fontSize: 26,
-                color: "#fcd34d",
+                color: "#64748b",
+                fontWeight: 600,
                 display: "flex",
               }}
             >
-              💰 {trip.budgetRangeLabel.replace("งบรวม ", "")}
-            </div>
-            <div style={{ fontSize: 26, color: "#64748b", fontWeight: 600, display: "flex" }}>
               tripthai.app
             </div>
           </div>
@@ -175,4 +210,13 @@ export default async function OpenGraphImage({ params }: OpenGraphImageProps) {
     ),
     size,
   )
+}
+
+/** Convert 6-digit hex color to "r,g,b" string for rgba() */
+function hexToRgb(hex: string): string {
+  const h = hex.replace("#", "")
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `${r},${g},${b}`
 }

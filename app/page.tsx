@@ -1,31 +1,37 @@
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
-import { Comparison } from "@/components/comparison"
-import { Regions } from "@/components/regions"
-import { FeaturedTrips } from "@/components/featured-trips"
-import { HowItWorks } from "@/components/how-it-works"
-import { MapPreview } from "@/components/map-preview"
+import { QuickPlanner } from "@/components/quick-planner"
 import { SocialProof } from "@/components/social-proof"
-import { FAQ } from "@/components/faq"
+import { HowItWorks } from "@/components/how-it-works"
+import { ExperienceBento } from "@/components/experience-bento"
+import { SeasonalCallout } from "@/components/seasonal-callout"
+import { ThailandMapExplorerClient } from "@/components/thailand-map-explorer-client"
+import { FeaturedTrips } from "@/components/featured-trips"
 import { CtaSection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
+import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen bg-slate-950">
       <Navbar />
-      <main className="flex-1">
-        <Hero />
-        <Comparison />
-        <Regions />
-        <FeaturedTrips />
-        <HowItWorks />
-        <MapPreview />
+      <Hero />
+      <QuickPlanner />
+      <div className="bg-white">
         <SocialProof />
-        <FAQ />
+        <HowItWorks />
+      </div>
+      <ExperienceBento />
+      <SeasonalCallout />
+      <div className="bg-slate-50">
+        <ThailandMapExplorerClient />
+      </div>
+      <div className="bg-white">
+        <FeaturedTrips />
         <CtaSection />
-      </main>
+      </div>
       <Footer />
+      <StickyMobileCTA />
     </div>
   )
 }
