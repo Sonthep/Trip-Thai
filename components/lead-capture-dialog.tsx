@@ -20,6 +20,8 @@ export function LeadCaptureDialog({ tripName, tripSlug }: { tripName: string; tr
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [name, setName] = useState("")
+  const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
 
   async function handleSubmit(e: React.FormEvent) {
@@ -34,6 +36,8 @@ export function LeadCaptureDialog({ tripName, tripSlug }: { tripName: string; tr
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          name,
+          phone,
           email,
           tripSlug,
           tripName,
@@ -69,6 +73,8 @@ export function LeadCaptureDialog({ tripName, tripSlug }: { tripName: string; tr
       // Reset state when closed with delay for smooth exit
       setTimeout(() => {
         setSuccess(false)
+        setName("")
+        setPhone("")
         setEmail("")
       }, 300)
     }
@@ -116,21 +122,40 @@ export function LeadCaptureDialog({ tripName, tripSlug }: { tripName: string; tr
         <DialogHeader>
           <DialogTitle>บันทึกแผนการเดินทาง</DialogTitle>
           <DialogDescription>
-            กรอกอีเมลเพื่อรับแผนทริป <strong>{tripName}</strong> พร้อมงบประมาณและพิกัดแผนที่แบบละเอียด (ฟรี)
+            กรอกข้อมูลเพื่อรับแผนทริป <strong>{tripName}</strong> พร้อมงบประมาณและพิกัดแผนที่แบบละเอียด (ฟรี)
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">อีเมลของคุณ</Label>
+              <Label htmlFor="name">ชื่อของคุณ</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="เช่น สมชาย"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">เบอร์โทรศัพท์</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="เช่น 081-234-5678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">อีเมล (ไม่บังคับ)</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                className="col-span-3"
               />
             </div>
           </div>
