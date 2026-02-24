@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { ArrowRight, Clock, MapPin, Star, Wallet } from "lucide-react"
@@ -32,18 +33,19 @@ const SEASON_FILTERS = [
 ]
 
 const TRIP_PHOTOS: Record<string, string> = {
-  "bangkok-chiang-mai":
-    "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=75",
-  "bangkok-phuket":
-    "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=800&q=75",
-  "bangkok-khao-yai":
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75",
-  "bangkok-hua-hin":
-    "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=75",
-  "bangkok-ayutthaya":
-    "https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=800&q=75",
-  "bangkok-kanchanaburi":
-    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75",
+  "bangkok-chiang-mai":    "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=75",
+  "bangkok-chiang-rai":    "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=800&q=75",
+  "bangkok-phuket":        "https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=800&q=75",
+  "bangkok-krabi":         "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=800&q=75",
+  "bangkok-hua-hin":       "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=75",
+  "bangkok-pattaya":       "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=75",
+  "bangkok-ayutthaya":     "https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=800&q=75",
+  "bangkok-kanchanaburi":  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75",
+  "bangkok-khao-yai":      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=75",
+  "chiang-mai-pai":        "https://images.unsplash.com/photo-1531761535209-180857e963b9?w=800&q=75",
+  "phuket-krabi":          "https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=800&q=75",
+  "bangkok-nakhon-ratchasima": "https://images.unsplash.com/photo-1562802378-063ec186a863?w=800&q=75",
+  "bangkok-udon-thani":    "https://images.unsplash.com/photo-1562802378-063ec186a863?w=800&q=75",
 }
 
 const FALLBACK_PHOTO =
@@ -138,11 +140,12 @@ export function FeaturedTrips() {
               >
                 {/* Photo */}
                 <div className="relative h-52 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                    <Image
                     src={photo}
                     alt={trip.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
