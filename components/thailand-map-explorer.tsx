@@ -17,6 +17,7 @@ type TouristPlace = {
     lat: number
     lng: number
   }
+  imageUrl?: string
 }
 
 type Region = "all" | "north" | "northeast" | "central" | "south"
@@ -693,20 +694,40 @@ export function ThailandMapExplorer() {
                   </div>
                 </div>
 
-                {/* Highlight places as chips */}
+                {/* Highlight places */}
                 {selectedPlaces.length > 0 && (
                   <div>
                     <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      สถานที่แนะนำ
+                      สถานที่แนะนำ ({selectedPlaces.length} แห่ง)
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                       {selectedPlaces.slice(0, 6).map((place) => (
-                        <span
+                        <div
                           key={place.id}
-                          className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600"
+                          className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
                         >
-                          {CATEGORY_ICONS[place.category]} {place.name}
-                        </span>
+                          {place.imageUrl ? (
+                            <div className="relative h-20 w-full overflow-hidden bg-slate-200">
+                              <img
+                                src={place.imageUrl}
+                                alt={place.name}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                              <span className="absolute bottom-1 left-2 text-[10px] font-medium text-white drop-shadow">
+                                {CATEGORY_ICONS[place.category]}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex h-20 items-center justify-center bg-slate-100 text-2xl">
+                              {CATEGORY_ICONS[place.category]}
+                            </div>
+                          )}
+                          <div className="px-2 py-1.5">
+                            <p className="line-clamp-2 text-[11px] font-medium leading-snug text-slate-700">{place.name}</p>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   </div>
