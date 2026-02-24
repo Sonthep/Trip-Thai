@@ -6,6 +6,40 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+@media print {
+  body,
+  html {
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  /* Reset dark cards to white */
+  [class*="bg-slate"],
+  [class*="bg-white/"] {
+    background: transparent !important;
+  }
+
+  /* readable card borders */
+  [class*="border-white/"] {
+    border-color: #ddd !important;
+  }
+
+  /* text contrast */
+  [class*="text-white"] {
+    color: #111 !important;
+  }
+
+  [class*="text-white/"] {
+    color: #444 !important;
+  }
+
+  /* Force page breaks to stay clean */
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -24,6 +24,7 @@ import { ShareButton } from "@/components/share-button"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
+import { CopyItineraryButton } from "@/components/copy-itinerary-button"
 
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
@@ -177,11 +178,11 @@ export default async function TripPage({ params }: TripPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Navbar />
+      <div className="print:hidden"><Navbar /></div>
       <TripPageClient tripSlug={trip.slug} tripName={trip.name} />
 
       {/* ── Full-bleed Hero Photo ──────────────────────────── */}
-      <section className="relative h-[52vh] min-h-[360px] overflow-hidden">
+      <section className="relative h-[52vh] min-h-[360px] overflow-hidden print:hidden">
         <Image
           src={photoUrl}
           alt={trip.name}
@@ -348,7 +349,10 @@ export default async function TripPage({ params }: TripPageProps) {
               <Map className="h-4 w-4 text-emerald-400" />
               แผนเที่ยววันต่อวัน
             </h2>
-            <p className="text-[11px] text-white/55">ข้อมูลตัวอย่าง สามารถปรับเปลี่ยนตามสไตล์การเที่ยวของคุณ</p>
+            <div className="flex items-center gap-2">
+              <p className="hidden text-[11px] text-white/55 sm:block">ข้อมูลตัวอย่าง สามารถปรับเปลี่ยนตามสไตล์การเที่ยวของคุณ</p>
+              <CopyItineraryButton trip={trip} />
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -381,7 +385,7 @@ export default async function TripPage({ params }: TripPageProps) {
         </section>
 
         {/* Map Preview */}
-        <section className="space-y-4">
+        <section className="space-y-4 print:hidden">
           <div className="flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
               <MapPin className="h-4 w-4 text-sky-400" />
@@ -418,7 +422,7 @@ export default async function TripPage({ params }: TripPageProps) {
 
         {/* Related Trips */}
         {relatedTrips.length > 0 && (
-          <section className="space-y-4">
+          <section className="space-y-4 print:hidden">
             <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
               <Car className="h-4 w-4 text-orange-400" />
               ทริปที่น่าสนใจอื่น ๆ
@@ -456,7 +460,7 @@ export default async function TripPage({ params }: TripPageProps) {
         )}
 
         {/* CTA Footer */}
-        <section className="mt-2 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent px-4 py-4 text-xs text-white/80 md:flex md:items-center md:justify-between md:gap-4">
+        <section className="mt-2 print:hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent px-4 py-4 text-xs text-white/80 md:flex md:items-center md:justify-between md:gap-4">
           <div className="mb-3 space-y-1 md:mb-0">
             <p className="text-sm font-semibold text-white">
               ชอบแพลนนี้เหรอ? เก็บไว้ใช้รอบหน้า หรือแชร์ให้เพื่อนดูเลย
@@ -472,7 +476,7 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
         </section>
       </div>
-      <Footer />
+      <div className="print:hidden"><Footer /></div>
     </div>
   )
 }
