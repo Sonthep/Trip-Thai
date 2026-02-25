@@ -16,14 +16,14 @@ export default function Page() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <Hero />
-      <QuickPlanner />
       <div className="bg-white">
         <SocialProof />
         <HowItWorks />
       </div>
+      <QuickPlanner />
       <ExperienceBento />
       <SeasonalCallout />
-      <div className="bg-slate-50">
+      <div id="map-explorer" className="bg-slate-50">
         <ThailandMapExplorerClient />
       </div>
       <div className="bg-white">

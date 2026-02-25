@@ -69,7 +69,7 @@ export function Hero() {
             <ArrowRight className="h-4 w-4" />
           </Link>
           <Link
-            href="/explore"
+            href="#map-explorer"
             className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-base font-medium text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/40"
           >
             สำรวจแผนที่ไทย
