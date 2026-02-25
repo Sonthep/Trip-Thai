@@ -1065,5 +1065,5 @@ export function searchTouristPlaces(params: {
     const byCategory = category ? place.category === category : true
     return byProvince && byQuery && byCategory
   })
-  return filtered.slice(0, Math.min(Math.max(limit, 1), 500))
+  return filtered.slice(0, Math.min(Math.max(limit, 1), 1000))
 }
