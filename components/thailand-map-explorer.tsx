@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
-import { ArrowRight, ChevronLeft } from "lucide-react"
-import { CircleMarker, GeoJSON, MapContainer, Tooltip, useMap } from "react-leaflet"
+import { ArrowRight, ChevronLeft, MapPin, Plus, Trash2, X } from "lucide-react"
+import { CircleMarker, GeoJSON, MapContainer, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
 import { TRIPS } from "@/lib/trips"
 
@@ -17,7 +17,6 @@ type TouristPlace = {
     lat: number
     lng: number
   }
-  imageUrl?: string
 }
 
 type Region = "all" | "north" | "northeast" | "central" | "south"
@@ -329,6 +328,8 @@ export function ThailandMapExplorer() {
   const [selectedRegion, setSelectedRegion] = useState<Region>("all")
   const [selectedCategory, setSelectedCategory] = useState<TouristPlace["category"] | "all">("all")
   const [selectedPlace, setSelectedPlace] = useState<TouristPlace | null>(null)
+  const [planPlaces, setPlanPlaces] = useState<TouristPlace[]>([])
+  const [showPlan, setShowPlan] = useState(false)
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -450,7 +451,6 @@ export function ThailandMapExplorer() {
 
   const selectedPlaces = useMemo(() => {
     const keyword = query.trim().toLowerCase()
-
     return places
       .filter((place) => {
         const provinceMeta = provinceMetaMap.get(place.province)
@@ -460,9 +460,7 @@ export function ThailandMapExplorer() {
         return regionPass && provincePass && categoryPass
       })
       .filter((place) =>
-        keyword
-          ? `${place.province} ${place.name} ${place.description}`.toLowerCase().includes(keyword)
-          : true,
+        keyword ? `${place.province} ${place.name} ${place.description}`.toLowerCase().includes(keyword) : true,
       )
       .slice(0, 24)
   }, [places, provinceMetaMap, selectedRegion, selectedProvince, selectedCategory, query])
@@ -606,6 +604,17 @@ export function ThailandMapExplorer() {
     { value: "viewpoint", label: "จุดชมวิว", icon: "🌅" },
   ]
 
+  function addToPlan(place: TouristPlace) {
+    setPlanPlaces((prev) =>
+      prev.find((p) => p.id === place.id) ? prev : [...prev, place]
+    )
+    setShowPlan(true)
+  }
+
+  function removeFromPlan(id: string) {
+    setPlanPlaces((prev) => prev.filter((p) => p.id !== id))
+  }
+
   const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
 
   // Find trips that involve the selected province
@@ -633,7 +642,7 @@ export function ThailandMapExplorer() {
             77 จังหวัด · 4 ภาค · ไม่รู้จะไปไหนดี?
           </h2>
           <p className="mt-4 text-pretty text-slate-500">
-            คลิกจังหวัดบนแผนที่เพื่อดูสถานที่แนะนำ กรองตามภาค หรือค้นหาตามสิ่งที่อยากเห็น
+            คลิกจังหวัดบนแผนที่เพื่อดูสถานที่แนะนำ กด เพิ่มในแผน เพื่อดูเส้นทางครบทุกจุดบนแผนที่
           </p>
         </div>
 
@@ -650,11 +659,57 @@ export function ThailandMapExplorer() {
                   : "border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:text-orange-600"
               }`}
             >
-              <span>{cat.icon}</span>
-              {cat.label}
+              <span>{cat.icon}</span>{cat.label}
             </button>
           ))}
+          {/* Plan basket button */}
+          {planPlaces.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPlan((v) => !v)}
+              className="ml-auto flex shrink-0 items-center gap-2 rounded-full border border-emerald-500 bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:bg-emerald-600"
+            >
+              <MapPin className="h-4 w-4" />
+              แผนของฉัน ({planPlaces.length})
+            </button>
+          )}
         </div>
+
+        {/* Plan basket (expanded) */}
+        {showPlan && planPlaces.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-bold text-emerald-800">
+                🗺️ เส้นทางที่วางแผน — {planPlaces.length} สถานที่
+              </p>
+              <button type="button" onClick={() => setShowPlan(false)} className="text-slate-400 hover:text-slate-700">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {planPlaces.map((place, i) => (
+                <div key={place.id} className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">{i + 1}</span>
+                  {CATEGORY_ICONS[place.category]} {place.name}
+                  <button type="button" onClick={() => removeFromPlan(place.id)} className="ml-1 text-slate-400 hover:text-red-500">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <Link
+                href={`/?from=${encodeURIComponent(planPlaces[0]?.province ?? "กรุงเทพ")}&to=${encodeURIComponent(planPlaces[planPlaces.length - 1]?.province ?? "")}#quick-planner`}
+                className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+              >
+                คำนวณงบทริปนี้ <ArrowRight className="h-4 w-4" />
+              </Link>
+              <button type="button" onClick={() => { setPlanPlaces([]); setShowPlan(false) }} className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500">
+                <Trash2 className="h-3.5 w-3.5" /> ล้างแผน
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Split-column layout: sidebar + map */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
@@ -712,7 +767,7 @@ export function ThailandMapExplorer() {
             </div>
 
             {selectedPlace ? (
-              /* ── Place Detail Panel ─────────────────────────── */
+              /* ── Place Detail Panel ───────────────────────── */
               <div className="flex flex-1 flex-col gap-4">
                 <button
                   type="button"
@@ -720,44 +775,41 @@ export function ThailandMapExplorer() {
                   className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
-                  กลับไป{selectedProvince ? `จังหวัด${selectedProvince}` : รายการ}
+                  {selectedProvince ? `กลับไปจังหวัด${selectedProvince}` : "กลับรายการ"}
                 </button>
-
-                {/* Photo */}
                 {selectedPlace.imageUrl ? (
-                  <div className="relative h-52 w-full overflow-hidden rounded-2xl bg-slate-200">
-                    <img
-                      src={selectedPlace.imageUrl}
-                      alt={selectedPlace.name}
-                      className="h-full w-full object-cover"
-                    />
+                  <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-slate-200">
+                    <img src={selectedPlace.imageUrl} alt={selectedPlace.name} className="h-full w-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   </div>
                 ) : (
-                  <div className="flex h-40 items-center justify-center rounded-2xl bg-slate-100 text-5xl">
+                  <div className="flex h-32 items-center justify-center rounded-2xl bg-slate-100 text-5xl">
                     {CATEGORY_ICONS[selectedPlace.category]}
                   </div>
                 )}
-
-                {/* Meta */}
                 <div className="flex items-center gap-2">
                   <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-600 ring-1 ring-orange-200">
-                    {CATEGORY_ICONS[selectedPlace.category]} {selectedPlace.category === "nature" ? "ธรรมชาติ" : selectedPlace.category === "temple" ? "วัด" : selectedPlace.category === "culture" ? "วัฒนธรรม" : selectedPlace.category === "food" ? "อาหาร" : selectedPlace.category === "beach" ? "หาด/ทะเล" : "จุดชมวิว"}
+                    {CATEGORY_ICONS[selectedPlace.category]}
                   </span>
                   <span className="text-xs text-slate-400">{selectedPlace.province}</span>
                 </div>
-
                 <h3 className="text-lg font-bold leading-snug text-slate-900">{selectedPlace.name}</h3>
                 <p className="text-sm leading-relaxed text-slate-600">{selectedPlace.description}</p>
-
-                {/* CTA */}
-                <Link
-                  href={`/?from=กรุงเทพ&to=${encodeURIComponent(selectedPlace.province)}#quick-planner`}
-                  className="mt-auto flex items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 transition-all hover:bg-orange-600"
+                <button
+                  type="button"
+                  onClick={() => addToPlan(selectedPlace)}
+                  className={`flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all ${
+                    planPlaces.some((p) => p.id === selectedPlace.id)
+                      ? "bg-emerald-500 text-white"
+                      : "bg-orange-500 text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+                  }`}
                 >
-                  วางแผนทริป {selectedPlace.province}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+                  {planPlaces.some((p) => p.id === selectedPlace.id) ? (
+                    <>\u2713 อยู่ในแผนแล้ว</>
+                  ) : (
+                    <><Plus className="h-4 w-4" />เพิ่มสถานที่นี้ในแผน</>
+                  )}
+                </button>
               </div>
             ) : selectedProvince ? (
               /* ── Province Detail Panel ─────────────────────── */
@@ -783,43 +835,56 @@ export function ThailandMapExplorer() {
                   </div>
                 </div>
 
-                {/* Highlight places */}
+                {/* Highlight places as chips */}
                 {selectedPlaces.length > 0 && (
                   <div>
                     <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                      สถานที่แนะนำ ({selectedPlaces.length} แห่ง)
+                      สถานที่แนะนำ
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedPlaces.slice(0, 8).map((place) => (
-                        <button
-                          key={place.id}
-                          type="button"
-                          onClick={() => setSelectedPlace(place)}
-                          className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50 text-left transition-all hover:border-orange-300 hover:shadow-md"
-                        >
-                          {place.imageUrl ? (
-                            <div className="relative h-20 w-full overflow-hidden bg-slate-200">
-                              <img
-                                src={place.imageUrl}
-                                alt={place.name}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                              <span className="absolute bottom-1 left-2 text-[10px] font-medium text-white drop-shadow">
-                                {CATEGORY_ICONS[place.category]}
-                              </span>
-                            </div>
-                          ) : (
-                            <div className="flex h-20 items-center justify-center bg-slate-100 text-2xl">
-                              {CATEGORY_ICONS[place.category]}
-                            </div>
-                          )}
-                          <div className="px-2 py-1.5">
-                            <p className="line-clamp-2 text-[11px] font-medium leading-snug text-slate-700">{place.name}</p>
+                      {selectedPlaces.slice(0, 8).map((place) => {
+                        const inPlan = planPlaces.some((p) => p.id === place.id)
+                        return (
+                          <div
+                            key={place.id}
+                            className={`overflow-hidden rounded-xl border bg-white text-left transition-all hover:shadow-md ${
+                              selectedPlace?.id === place.id ? "border-orange-400" : "border-slate-100"
+                            }`}
+                          >
+                            <button type="button" className="w-full text-left" onClick={() => setSelectedPlace(place)}>
+                              {place.imageUrl ? (
+                                <div className="relative h-20 w-full overflow-hidden bg-slate-200">
+                                  <img src={place.imageUrl} alt={place.name} className="h-full w-full object-cover" loading="lazy" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                                  <span className="absolute bottom-1 left-2 text-[10px] font-medium text-white drop-shadow">
+                                    {CATEGORY_ICONS[place.category]}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex h-16 items-center justify-center bg-slate-100 text-2xl">
+                                  {CATEGORY_ICONS[place.category]}
+                                </div>
+                              )}
+                              <p className="line-clamp-2 px-2 pt-1.5 text-[11px] font-medium leading-snug text-slate-700">{place.name}</p>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => addToPlan(place)}
+                              className={`mt-1 flex w-full items-center justify-center gap-1 rounded-b-xl py-1.5 text-[11px] font-semibold transition-colors ${
+                                inPlan
+                                  ? "bg-emerald-50 text-emerald-600"
+                                  : "bg-slate-50 text-slate-500 hover:bg-orange-50 hover:text-orange-600"
+                              }`}
+                            >
+                              {inPlan ? (
+                                <>✓ อยู่ในแผนแล้ว</>
+                              ) : (
+                                <><Plus className="h-3 w-3" /> เพิ่มในแผน</>
+                              )}
+                            </button>
                           </div>
-                        </button>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )}
@@ -943,13 +1008,16 @@ export function ThailandMapExplorer() {
               center={THAILAND_CENTER}
               zoom={6}
               minZoom={5}
-              maxZoom={8}
+              maxZoom={13}
               scrollWheelZoom
-              zoomControl={false}
-              attributionControl={false}
+              zoomControl
+              attributionControl
               className="h-[640px] w-full"
-              style={{ backgroundColor: "#e2e8f0" }}
             >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              />
               <FitThailandBounds data={geoData} />
               {geoData && (
                 <GeoJSON
@@ -970,13 +1038,32 @@ export function ThailandMapExplorer() {
                   radius={8}
                   pathOptions={{
                     fillColor: CATEGORY_COLORS[place.category],
-                    color: "#fff",
-                    weight: 2,
-                    fillOpacity: selectedPlace?.id === place.id ? 1 : 0.85,
+                    color: planPlaces.some((p) => p.id === place.id) ? "#f97316" : "#fff",
+                    weight: planPlaces.some((p) => p.id === place.id) ? 3 : 2,
+                    fillOpacity: 0.9,
                   }}
                   eventHandlers={{ click: () => setSelectedPlace(place) }}
                 >
-                  <Tooltip sticky>{place.name}</Tooltip>
+                  <Tooltip sticky direction="top">{place.name}</Tooltip>
+                </CircleMarker>
+              ))}
+              {/* Route polyline for plan */}
+              {planPlaces.length > 1 && (
+                <Polyline
+                  positions={planPlaces.map((p) => [p.location.lat, p.location.lng])}
+                  pathOptions={{ color: "#f97316", weight: 3, dashArray: "8 6", opacity: 0.85 }}
+                />
+              )}
+              {/* Plan place numbered markers */}
+              {planPlaces.map((place, i) => (
+                <CircleMarker
+                  key={`plan-${place.id}`}
+                  center={[place.location.lat, place.location.lng]}
+                  radius={11}
+                  pathOptions={{ fillColor: "#f97316", color: "#fff", weight: 2.5, fillOpacity: 1 }}
+                  eventHandlers={{ click: () => setSelectedPlace(place) }}
+                >
+                  <Tooltip permanent direction="top" className="plan-marker-label">{i + 1}</Tooltip>
                 </CircleMarker>
               ))}
             </MapContainer>
