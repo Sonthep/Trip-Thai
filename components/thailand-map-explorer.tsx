@@ -842,7 +842,7 @@ export function ThailandMapExplorer() {
                       สถานที่แนะนำ
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedPlaces.slice(0, 8).map((place) => {
+                      {selectedPlaces.slice(0, 10).map((place) => {
                         const inPlan = planPlaces.some((p) => p.id === place.id)
                         return (
                           <div
