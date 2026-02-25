@@ -242,6 +242,10 @@ function findMockRoute(origin: string, destination: string): MockRoute | null {
   return directMatch ?? null
 }
 
+export function getProvinceCoordinate(province: string): { lat: number; lng: number } {
+  return getPlaceCoordinate(province)
+}
+
 export function calculateTrip(input: TripCalculationInput): TripCalculationResult {
   const safeOrigin = sanitizePlaceName(input.origin) || "กรุงเทพ"
   const safeDestination = sanitizePlaceName(input.destination) || "เชียงใหม่"
