@@ -1050,6 +1050,11 @@ export function getAllTouristPlaces() {
   return ALL_PLACES
 }
 
+export function getTouristPlacesByIds(ids: string[]): typeof ALL_PLACES {
+  const idSet = new Set(ids)
+  return ALL_PLACES.filter((p) => idSet.has(p.id))
+}
+
 export function searchTouristPlaces(params: {
   province?: string
   q?: string
