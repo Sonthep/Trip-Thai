@@ -14,10 +14,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TripBudgetChart } from "@/components/TripBudgetChart"
+import { TripMapClient as TripMap } from "@/components/TripMapClient"
+import type { TripMapWaypoint } from "@/components/TripMap"
 import { calculateTrip } from "@/lib/calculateTrip"
+import { getTouristPlacesByIds } from "@/lib/touristPlaces"
 import { TRIPS } from "@/lib/trips"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  nature: "🌿",
+  temple: "🛕",
+  culture: "🎭",
+  food: "🍜",
+  beach: "🏖️",
+  viewpoint: "🌅",
+}
 
 type Props = {
   searchParams: Promise<{
@@ -25,6 +37,8 @@ type Props = {
     destination?: string
     people?: string
     kmPerLiter?: string
+    /** Comma-separated tourist place IDs from the map explorer plan basket */
+    places?: string
   }>
 }
 
@@ -68,6 +82,27 @@ export default async function CustomTripPage({ searchParams }: Props) {
     kmPerLiter,
     fuelPrice: 42,
   })
+
+  // ── Tourist-place waypoints from plan basket ──────────────────────────
+  const planPlaces = sp.places
+    ? getTouristPlacesByIds(sp.places.split(",").map((s) => s.trim()).filter(Boolean))
+    : []
+  // Preserve the order from the URL param
+  const orderedPlanPlaces = sp.places
+    ? sp.places.split(",").map((id) => planPlaces.find((p) => p.id === id)).filter(Boolean)
+    : []
+  const waypoints: TripMapWaypoint[] = orderedPlanPlaces.map((place, i) => ({
+    position: place!.location,
+    label: place!.name,
+    index: i + 1,
+    category: place!.category,
+  }))
+
+  // Use real place coordinates for origin/destination if available
+  const firstPlace = orderedPlanPlaces[0]
+  const lastPlace = orderedPlanPlaces[orderedPlanPlaces.length - 1]
+  const originPos = firstPlace?.location ?? { lat: 13.7563, lng: 100.5018 }
+  const destPos = lastPlace?.location ?? { lat: 13.7563, lng: 100.5018 }
 
   const lo = Math.round((result.total_cost * 0.85) / 100) * 100
   const hi = Math.round((result.total_cost * 1.2) / 100) * 100
@@ -245,6 +280,52 @@ export default async function CustomTripPage({ searchParams }: Props) {
             </div>
           </section>
         )}
+
+        {/* ── Tourist places from plan basket ── */}
+        {orderedPlanPlaces.length > 0 && (
+          <section className="space-y-3">
+            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
+              <MapPin className="h-4 w-4 text-orange-400" />
+              สถานที่ที่เลือกไว้ ({orderedPlanPlaces.length} แห่ง)
+            </h2>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {orderedPlanPlaces.map((place, i) => (
+                <div key={place!.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2.5">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold text-white">
+                      {CATEGORY_EMOJI[place!.category] ?? "📍"} {place!.name}
+                    </p>
+                    <p className="text-[10px] text-white/40">{place!.province}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── Map with plan basket waypoints ── */}
+        <section className="space-y-4 print:hidden">
+          <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
+            <MapPin className="h-4 w-4 text-sky-400" />
+            แผนที่เส้นทาง
+            {waypoints.length > 0 && (
+              <span className="rounded-full bg-orange-500/20 px-2 py-0.5 text-[10px] font-medium text-orange-300 ring-1 ring-orange-500/30">
+                {waypoints.length} จุดแวะ
+              </span>
+            )}
+          </h2>
+          <TripMap
+            origin={{ position: originPos, label: origin }}
+            destination={{ position: destPos, label: destination }}
+            distanceKm={result.distance_km}
+            durationHours={result.duration_hours}
+            fuelCost={result.fuel_cost}
+            waypoints={waypoints}
+          />
+        </section>
 
         {/* Related pre-built trips */}
         {relatedTrips.length > 0 && (

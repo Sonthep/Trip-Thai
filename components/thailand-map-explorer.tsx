@@ -1104,7 +1104,7 @@ export function ThailandMapExplorer() {
                     {/* Actions */}
                     <div className="mt-3 flex flex-col gap-2">
                       <Link
-                        href={`/?from=${encodeURIComponent(planPlaces[0]?.province ?? "กรุงเทพ")}&to=${encodeURIComponent(planPlaces[planPlaces.length - 1]?.province ?? "")}${planPlaces.length > 2 ? `&via=${planPlaces.slice(1, -1).map((p) => encodeURIComponent(p.province)).join(",")}` : ""}#quick-planner`}
+                        href={`/trip/custom?origin=${encodeURIComponent(planPlaces[0]?.province ?? "กรุงเทพ")}&destination=${encodeURIComponent(planPlaces[planPlaces.length - 1]?.province ?? "เชียงใหม่")}&people=2&kmPerLiter=15&places=${planPlaces.map((p) => p.id).join(",")}`}
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
                       >
                         คำนวณงบทริปนี้ <ArrowRight className="h-4 w-4" />
