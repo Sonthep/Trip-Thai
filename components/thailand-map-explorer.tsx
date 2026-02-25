@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { ArrowRight, ChevronLeft, MapPin, Plus, Trash2, X } from "lucide-react"
-import { CircleMarker, GeoJSON, MapContainer, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
+import L from "leaflet"
+import { GeoJSON, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
 import { TRIPS } from "@/lib/trips"
 
@@ -586,12 +587,36 @@ export function ThailandMapExplorer() {
   }
 
   const CATEGORY_COLORS: Record<TouristPlace["category"], string> = {
-    nature: "#22c55e",
-    temple: "#f59e0b",
-    culture: "#8b5cf6",
-    food: "#ef4444",
-    beach: "#06b6d4",
-    viewpoint: "#f97316",
+    nature: "#16a34a",
+    temple: "#d97706",
+    culture: "#7c3aed",
+    food: "#dc2626",
+    beach: "#0891b2",
+    viewpoint: "#ea580c",
+  }
+
+  function makeCategoryIcon(category: TouristPlace["category"], inPlan: boolean) {
+    const emoji = CATEGORY_ICONS[category]
+    const bg = CATEGORY_COLORS[category]
+    const border = inPlan ? "#f97316" : "rgba(255,255,255,0.95)"
+    const shadow = inPlan ? "0 0 0 3px #f97316,0 3px 10px rgba(0,0,0,0.35)" : "0 2px 8px rgba(0,0,0,0.30)"
+    return L.divIcon({
+      html: `<div style="background:${bg};border:2.5px solid ${border};border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:${shadow};cursor:pointer;transition:transform 0.15s">${emoji}</div>`,
+      className: "",
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+      tooltipAnchor: [0, -18],
+    })
+  }
+
+  function makePlanIcon(index: number) {
+    return L.divIcon({
+      html: `<div style="background:#f97316;border:2.5px solid white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;box-shadow:0 2px 8px rgba(249,115,22,0.6);cursor:pointer">${index + 1}</div>`,
+      className: "",
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+      tooltipAnchor: [0, -16],
+    })
   }
 
   const CATEGORIES: { value: TouristPlace["category"] | "all"; label: string; icon: string }[] = [
@@ -1032,20 +1057,14 @@ export function ThailandMapExplorer() {
               )}
               {/* Place markers */}
               {selectedPlaces.map((place) => (
-                <CircleMarker
+                <Marker
                   key={place.id}
-                  center={[place.location.lat, place.location.lng]}
-                  radius={8}
-                  pathOptions={{
-                    fillColor: CATEGORY_COLORS[place.category],
-                    color: planPlaces.some((p) => p.id === place.id) ? "#f97316" : "#fff",
-                    weight: planPlaces.some((p) => p.id === place.id) ? 3 : 2,
-                    fillOpacity: 0.9,
-                  }}
+                  position={[place.location.lat, place.location.lng]}
+                  icon={makeCategoryIcon(place.category, planPlaces.some((p) => p.id === place.id))}
                   eventHandlers={{ click: () => setSelectedPlace(place) }}
                 >
-                  <Tooltip sticky direction="top">{place.name}</Tooltip>
-                </CircleMarker>
+                  <Tooltip direction="top" offset={[0, -18]}>{place.name}</Tooltip>
+                </Marker>
               ))}
               {/* Route polyline for plan */}
               {planPlaces.length > 1 && (
@@ -1056,15 +1075,14 @@ export function ThailandMapExplorer() {
               )}
               {/* Plan place numbered markers */}
               {planPlaces.map((place, i) => (
-                <CircleMarker
+                <Marker
                   key={`plan-${place.id}`}
-                  center={[place.location.lat, place.location.lng]}
-                  radius={11}
-                  pathOptions={{ fillColor: "#f97316", color: "#fff", weight: 2.5, fillOpacity: 1 }}
+                  position={[place.location.lat, place.location.lng]}
+                  icon={makePlanIcon(i)}
                   eventHandlers={{ click: () => setSelectedPlace(place) }}
                 >
-                  <Tooltip permanent direction="top" className="plan-marker-label">{i + 1}</Tooltip>
-                </CircleMarker>
+                  <Tooltip permanent direction="top" offset={[0, -16]} className="plan-marker-label">{i + 1}</Tooltip>
+                </Marker>
               ))}
             </MapContainer>
 
