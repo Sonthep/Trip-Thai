@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
 import { ArrowRight, ChevronLeft } from "lucide-react"
-import { GeoJSON, MapContainer, useMap } from "react-leaflet"
+import { CircleMarker, GeoJSON, MapContainer, Tooltip, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
 import { TRIPS } from "@/lib/trips"
 
@@ -327,6 +327,8 @@ export function ThailandMapExplorer() {
   const [selectedProvince, setSelectedProvince] = useState<string>("")
   const [hoveredProvince, setHoveredProvince] = useState<string>("")
   const [selectedRegion, setSelectedRegion] = useState<Region>("all")
+  const [selectedCategory, setSelectedCategory] = useState<TouristPlace["category"] | "all">("all")
+  const [selectedPlace, setSelectedPlace] = useState<TouristPlace | null>(null)
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -454,15 +456,16 @@ export function ThailandMapExplorer() {
         const provinceMeta = provinceMetaMap.get(place.province)
         const regionPass = selectedRegion === "all" ? true : provinceMeta?.region === selectedRegion
         const provincePass = selectedProvince ? place.province === selectedProvince : true
-        return regionPass && provincePass
+        const categoryPass = selectedCategory === "all" ? true : place.category === selectedCategory
+        return regionPass && provincePass && categoryPass
       })
       .filter((place) =>
         keyword
           ? `${place.province} ${place.name} ${place.description}`.toLowerCase().includes(keyword)
           : true,
       )
-      .slice(0, 12)
-  }, [places, provinceMetaMap, selectedRegion, selectedProvince, query])
+      .slice(0, 24)
+  }, [places, provinceMetaMap, selectedRegion, selectedProvince, selectedCategory, query])
 
   const regionStats = useMemo(() => {
     const countMap = new Map<Exclude<Region, "all">, number>([
@@ -584,6 +587,25 @@ export function ThailandMapExplorer() {
     viewpoint: "🌅",
   }
 
+  const CATEGORY_COLORS: Record<TouristPlace["category"], string> = {
+    nature: "#22c55e",
+    temple: "#f59e0b",
+    culture: "#8b5cf6",
+    food: "#ef4444",
+    beach: "#06b6d4",
+    viewpoint: "#f97316",
+  }
+
+  const CATEGORIES: { value: TouristPlace["category"] | "all"; label: string; icon: string }[] = [
+    { value: "all", label: "ทั้งหมด", icon: "🗺️" },
+    { value: "nature", label: "ธรรมชาติ", icon: "🌿" },
+    { value: "temple", label: "วัด", icon: "🛕" },
+    { value: "culture", label: "วัฒนธรรม", icon: "🎭" },
+    { value: "food", label: "อาหาร", icon: "🍜" },
+    { value: "beach", label: "หาด/ทะเล", icon: "🏖️" },
+    { value: "viewpoint", label: "จุดชมวิว", icon: "🌅" },
+  ]
+
   const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
 
   // Find trips that involve the selected province
@@ -613,6 +635,25 @@ export function ThailandMapExplorer() {
           <p className="mt-4 text-pretty text-slate-500">
             คลิกจังหวัดบนแผนที่เพื่อดูสถานที่แนะนำ กรองตามภาค หรือค้นหาตามสิ่งที่อยากเห็น
           </p>
+        </div>
+
+        {/* Category filter chips */}
+        <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-1">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              onClick={() => { setSelectedCategory(cat.value); setSelectedPlace(null) }}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-all ${
+                selectedCategory === cat.value
+                  ? "border-orange-500 bg-orange-500 text-white shadow-md shadow-orange-200"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:text-orange-600"
+              }`}
+            >
+              <span>{cat.icon}</span>
+              {cat.label}
+            </button>
+          ))}
         </div>
 
         {/* Split-column layout: sidebar + map */}
@@ -670,7 +711,55 @@ export function ThailandMapExplorer() {
               </div>
             </div>
 
-            {selectedProvince ? (
+            {selectedPlace ? (
+              /* ── Place Detail Panel ─────────────────────────── */
+              <div className="flex flex-1 flex-col gap-4">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlace(null)}
+                  className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-900"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  กลับไป{selectedProvince ? `จังหวัด${selectedProvince}` : รายการ}
+                </button>
+
+                {/* Photo */}
+                {selectedPlace.imageUrl ? (
+                  <div className="relative h-52 w-full overflow-hidden rounded-2xl bg-slate-200">
+                    <img
+                      src={selectedPlace.imageUrl}
+                      alt={selectedPlace.name}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  </div>
+                ) : (
+                  <div className="flex h-40 items-center justify-center rounded-2xl bg-slate-100 text-5xl">
+                    {CATEGORY_ICONS[selectedPlace.category]}
+                  </div>
+                )}
+
+                {/* Meta */}
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-600 ring-1 ring-orange-200">
+                    {CATEGORY_ICONS[selectedPlace.category]} {selectedPlace.category === "nature" ? "ธรรมชาติ" : selectedPlace.category === "temple" ? "วัด" : selectedPlace.category === "culture" ? "วัฒนธรรม" : selectedPlace.category === "food" ? "อาหาร" : selectedPlace.category === "beach" ? "หาด/ทะเล" : "จุดชมวิว"}
+                  </span>
+                  <span className="text-xs text-slate-400">{selectedPlace.province}</span>
+                </div>
+
+                <h3 className="text-lg font-bold leading-snug text-slate-900">{selectedPlace.name}</h3>
+                <p className="text-sm leading-relaxed text-slate-600">{selectedPlace.description}</p>
+
+                {/* CTA */}
+                <Link
+                  href={`/?from=กรุงเทพ&to=${encodeURIComponent(selectedPlace.province)}#quick-planner`}
+                  className="mt-auto flex items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 transition-all hover:bg-orange-600"
+                >
+                  วางแผนทริป {selectedPlace.province}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : selectedProvince ? (
               /* ── Province Detail Panel ─────────────────────── */
               <div className="flex flex-1 flex-col gap-4">
                 {/* Back + province header */}
@@ -701,10 +790,12 @@ export function ThailandMapExplorer() {
                       สถานที่แนะนำ ({selectedPlaces.length} แห่ง)
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedPlaces.slice(0, 6).map((place) => (
-                        <div
+                      {selectedPlaces.slice(0, 8).map((place) => (
+                        <button
                           key={place.id}
-                          className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
+                          type="button"
+                          onClick={() => setSelectedPlace(place)}
+                          className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50 text-left transition-all hover:border-orange-300 hover:shadow-md"
                         >
                           {place.imageUrl ? (
                             <div className="relative h-20 w-full overflow-hidden bg-slate-200">
@@ -727,7 +818,7 @@ export function ThailandMapExplorer() {
                           <div className="px-2 py-1.5">
                             <p className="line-clamp-2 text-[11px] font-medium leading-snug text-slate-700">{place.name}</p>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -871,6 +962,23 @@ export function ThailandMapExplorer() {
                   onEachFeature={onEachProvince as any}
                 />
               )}
+              {/* Place markers */}
+              {selectedPlaces.map((place) => (
+                <CircleMarker
+                  key={place.id}
+                  center={[place.location.lat, place.location.lng]}
+                  radius={8}
+                  pathOptions={{
+                    fillColor: CATEGORY_COLORS[place.category],
+                    color: "#fff",
+                    weight: 2,
+                    fillOpacity: selectedPlace?.id === place.id ? 1 : 0.85,
+                  }}
+                  eventHandlers={{ click: () => setSelectedPlace(place) }}
+                >
+                  <Tooltip sticky>{place.name}</Tooltip>
+                </CircleMarker>
+              ))}
             </MapContainer>
 
             {isLoading && (
