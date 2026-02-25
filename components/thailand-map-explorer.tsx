@@ -343,7 +343,7 @@ export function ThailandMapExplorer() {
 
       try {
         const [placesResponse, geoResponse] = await Promise.all([
-          fetch("/api/tourist-places?limit=500"),
+          fetch("/api/tourist-places?limit=1000"),
           fetch("/data/thailand-provinces.geojson"),
         ])
 
