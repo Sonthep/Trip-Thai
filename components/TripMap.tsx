@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useMemo, useState } from "react"
 import L from "leaflet"
-import { MapContainer, CircleMarker, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
+import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet"
 import type { LatLngExpression } from "leaflet"
 import { MapPin, Fuel, Clock, Route } from "lucide-react"
 
@@ -88,15 +88,31 @@ function OsrmRoute({ positions, fallbackPath }: { positions: LatLng[]; fallbackP
 function makeWaypointIcon(num: number) {
   return L.divIcon({
     className: "",
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
     html: `<div style="
-      width:22px;height:22px;border-radius:50%;
-      background:#f97316;border:2px solid #fff;
+      width:28px;height:28px;border-radius:50%;
+      background:#f97316;border:2.5px solid #fff;
       display:flex;align-items:center;justify-content:center;
-      font-size:10px;font-weight:900;color:#fff;
-      box-shadow:0 2px 6px rgba(0,0,0,.5);">${num}</div>`,
+      font-size:11px;font-weight:900;color:#fff;
+      box-shadow:0 2px 8px rgba(0,0,0,.6);cursor:pointer;">${num}</div>`,
   })
+}
+
+function makeEndpointIcon(color: string) {
+  return L.divIcon({
+    className: "",
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    html: `<div style="
+      width:20px;height:20px;border-radius:50%;
+      background:${color};border:2.5px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,.6);cursor:pointer;"></div>`,
+  })
+}
+
+function gmLink(lat: number, lng: number, label: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query=${encodeURIComponent(label)}`
 }
 
 function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost, waypoints = [] }: TripMapProps) {
@@ -138,15 +154,27 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
         <OsrmRoute positions={allPositions} fallbackPath={path} />
 
         {/* Origin */}
-        <CircleMarker
-          center={[origin.position.lat, origin.position.lng]}
-          radius={7}
-          pathOptions={{ color: "#38bdf8", fillColor: "#38bdf8", fillOpacity: 1 }}
+        <Marker
+          position={[origin.position.lat, origin.position.lng]}
+          icon={makeEndpointIcon("#38bdf8")}
         >
-          <Tooltip permanent direction="top" offset={[0, -10]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
+          <Tooltip permanent direction="top" offset={[0, -12]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
             {origin.label}
           </Tooltip>
-        </CircleMarker>
+          <Popup className="trip-popup">
+            <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>📍 {origin.label}</p>
+              <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{origin.position.lat.toFixed(5)}, {origin.position.lng.toFixed(5)}</p>
+              <a
+                href={gmLink(origin.position.lat, origin.position.lng, origin.label)}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#4285f4", color: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
+              >
+                🗺 เปิดใน Google Maps
+              </a>
+            </div>
+          </Popup>
+        </Marker>
 
         {/* Waypoints (tourist places from plan basket) */}
         {waypoints.sort((a, b) => a.index - b.index).map((wp) => (
@@ -155,22 +183,48 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
             position={[wp.position.lat, wp.position.lng]}
             icon={makeWaypointIcon(wp.index)}
           >
-            <Tooltip direction="top" offset={[0, -12]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
+            <Tooltip direction="top" offset={[0, -14]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
               {wp.label}
             </Tooltip>
+            <Popup className="trip-popup">
+              <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
+                <p style={{ margin: "0 0 2px", fontSize: 10, color: "#94a3b8", fontWeight: 600 }}>จุดแวะที่ {wp.index}</p>
+                <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>📍 {wp.label}</p>
+                <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{wp.position.lat.toFixed(5)}, {wp.position.lng.toFixed(5)}</p>
+                <a
+                  href={gmLink(wp.position.lat, wp.position.lng, wp.label)}
+                  target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#4285f4", color: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
+                >
+                  🗺 เปิดใน Google Maps
+                </a>
+              </div>
+            </Popup>
           </Marker>
         ))}
 
         {/* Destination */}
-        <CircleMarker
-          center={[destination.position.lat, destination.position.lng]}
-          radius={8}
-          pathOptions={{ color: "#22c55e", fillColor: "#22c55e", fillOpacity: 1 }}
+        <Marker
+          position={[destination.position.lat, destination.position.lng]}
+          icon={makeEndpointIcon("#22c55e")}
         >
-          <Tooltip permanent direction="top" offset={[0, -10]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
+          <Tooltip permanent direction="top" offset={[0, -12]} className="!border-0 !bg-black/70 !text-white !text-[10px] !rounded-lg !px-2 !py-0.5 !shadow-none">
             {destination.label}
           </Tooltip>
-        </CircleMarker>
+          <Popup className="trip-popup">
+            <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
+              <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>🏁 {destination.label}</p>
+              <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{destination.position.lat.toFixed(5)}, {destination.position.lng.toFixed(5)}</p>
+              <a
+                href={gmLink(destination.position.lat, destination.position.lng, destination.label)}
+                target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#4285f4", color: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
+              >
+                🗺 เปิดใน Google Maps
+              </a>
+            </div>
+          </Popup>
+        </Marker>
       </MapContainer>
 
       {/* Floating metric badges */}
