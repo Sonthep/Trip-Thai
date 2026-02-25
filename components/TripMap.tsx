@@ -17,6 +17,7 @@ export type TripMapWaypoint = {
   /** 1-based display number */
   index: number
   category?: string
+  province?: string
 }
 
 export type TripMapProps = {
@@ -111,8 +112,9 @@ function makeEndpointIcon(color: string) {
   })
 }
 
-function gmLink(lat: number, lng: number, label: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query=${encodeURIComponent(label)}`
+function gmLink(_lat: number, _lng: number, label: string, province?: string) {
+  const q = province ? `${label} ${province}` : label
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`
 }
 
 function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost, waypoints = [] }: TripMapProps) {
@@ -164,7 +166,6 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
           <Popup className="trip-popup">
             <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
               <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>📍 {origin.label}</p>
-              <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{origin.position.lat.toFixed(5)}, {origin.position.lng.toFixed(5)}</p>
               <a
                 href={gmLink(origin.position.lat, origin.position.lng, origin.label)}
                 target="_blank" rel="noopener noreferrer"
@@ -190,9 +191,9 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
               <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
                 <p style={{ margin: "0 0 2px", fontSize: 10, color: "#94a3b8", fontWeight: 600 }}>จุดแวะที่ {wp.index}</p>
                 <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>📍 {wp.label}</p>
-                <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{wp.position.lat.toFixed(5)}, {wp.position.lng.toFixed(5)}</p>
+                {wp.province && <p style={{ margin: "0 0 6px", fontSize: 10, color: "#64748b" }}>จ.{wp.province}</p>}
                 <a
-                  href={gmLink(wp.position.lat, wp.position.lng, wp.label)}
+                  href={gmLink(wp.position.lat, wp.position.lng, wp.label, wp.province)}
                   target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "#4285f4", color: "#fff", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
                 >
@@ -214,7 +215,6 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
           <Popup className="trip-popup">
             <div style={{ minWidth: 160, fontFamily: "sans-serif" }}>
               <p style={{ margin: "0 0 4px", fontWeight: 700, fontSize: 13, color: "#0f172a" }}>🏁 {destination.label}</p>
-              <p style={{ margin: "0 0 8px", fontSize: 10, color: "#64748b" }}>{destination.position.lat.toFixed(5)}, {destination.position.lng.toFixed(5)}</p>
               <a
                 href={gmLink(destination.position.lat, destination.position.lng, destination.label)}
                 target="_blank" rel="noopener noreferrer"

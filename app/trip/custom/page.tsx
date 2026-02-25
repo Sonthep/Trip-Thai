@@ -102,6 +102,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
     label: place!.name,
     index: i + 1,
     category: place!.category,
+    province: place!.province,
   }))
 
   // ── Real coordinates via province lookup ────────────────────────────
