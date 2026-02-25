@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
-import { ArrowRight, ChevronLeft, MapPin, Plus, Trash2, X } from "lucide-react"
+import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, Copy, MapPin, Plus, Trash2, X } from "lucide-react"
 import L from "leaflet"
 import { GeoJSON, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
@@ -329,8 +329,20 @@ export function ThailandMapExplorer() {
   const [selectedRegion, setSelectedRegion] = useState<Region>("all")
   const [selectedCategory, setSelectedCategory] = useState<TouristPlace["category"] | "all">("all")
   const [selectedPlace, setSelectedPlace] = useState<TouristPlace | null>(null)
-  const [planPlaces, setPlanPlaces] = useState<TouristPlace[]>([])
+  const [planPlaces, setPlanPlaces] = useState<TouristPlace[]>(() => {
+    if (typeof window === "undefined") return []
+    try {
+      const saved = localStorage.getItem("trip-thai-plan")
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
   const [showPlan, setShowPlan] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  // Persist plan to localStorage
+  useEffect(() => {
+    try { localStorage.setItem("trip-thai-plan", JSON.stringify(planPlaces)) } catch {}
+  }, [planPlaces])
   const [query, setQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
@@ -640,6 +652,54 @@ export function ThailandMapExplorer() {
     setPlanPlaces((prev) => prev.filter((p) => p.id !== id))
   }
 
+  function movePlanPlace(id: string, dir: "up" | "down") {
+    setPlanPlaces((prev) => {
+      const idx = prev.findIndex((p) => p.id === id)
+      if (idx < 0) return prev
+      const next = [...prev]
+      const swap = dir === "up" ? idx - 1 : idx + 1
+      if (swap < 0 || swap >= next.length) return prev
+      ;[next[idx], next[swap]] = [next[swap], next[idx]]
+      return next
+    })
+  }
+
+  function copyPlanLink() {
+    const ids = planPlaces.map((p) => p.id).join(",")
+    const url = `${window.location.origin}/explore?plan=${encodeURIComponent(ids)}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  // haversine straight-line distance in km
+  function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+    const R = 6371
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180
+    const x =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((a.lat * Math.PI) / 180) *
+        Math.cos((b.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x))
+  }
+
+  const planTotalKm = useMemo(() => {
+    if (planPlaces.length < 2) return 0
+    let total = 0
+    for (let i = 0; i < planPlaces.length - 1; i++) {
+      total += haversineKm(planPlaces[i].location, planPlaces[i + 1].location)
+    }
+    return Math.round(total)
+  }, [planPlaces])
+
+  const planUniqueProvinces = useMemo(
+    () => new Set(planPlaces.map((p) => p.province)).size,
+    [planPlaces]
+  )
+
   const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
 
   // Find trips that involve the selected province
@@ -687,54 +747,10 @@ export function ThailandMapExplorer() {
               <span>{cat.icon}</span>{cat.label}
             </button>
           ))}
-          {/* Plan basket button */}
-          {planPlaces.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowPlan((v) => !v)}
-              className="ml-auto flex shrink-0 items-center gap-2 rounded-full border border-emerald-500 bg-emerald-500 px-4 py-1.5 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:bg-emerald-600"
-            >
-              <MapPin className="h-4 w-4" />
-              แผนของฉัน ({planPlaces.length})
-            </button>
-          )}
+
         </div>
 
-        {/* Plan basket (expanded) */}
-        {showPlan && planPlaces.length > 0 && (
-          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-bold text-emerald-800">
-                🗺️ เส้นทางที่วางแผน — {planPlaces.length} สถานที่
-              </p>
-              <button type="button" onClick={() => setShowPlan(false)} className="text-slate-400 hover:text-slate-700">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {planPlaces.map((place, i) => (
-                <div key={place.id} className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-medium text-slate-700">
-                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">{i + 1}</span>
-                  {CATEGORY_ICONS[place.category]} {place.name}
-                  <button type="button" onClick={() => removeFromPlan(place.id)} className="ml-1 text-slate-400 hover:text-red-500">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <Link
-                href={`/?from=${encodeURIComponent(planPlaces[0]?.province ?? "กรุงเทพ")}&to=${encodeURIComponent(planPlaces[planPlaces.length - 1]?.province ?? "")}#quick-planner`}
-                className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
-              >
-                คำนวณงบทริปนี้ <ArrowRight className="h-4 w-4" />
-              </Link>
-              <button type="button" onClick={() => { setPlanPlaces([]); setShowPlan(false) }} className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-500">
-                <Trash2 className="h-3.5 w-3.5" /> ล้างแผน
-              </button>
-            </div>
-          </div>
-        )}
+
 
         {/* Split-column layout: sidebar + map */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
@@ -1003,6 +1019,118 @@ export function ThailandMapExplorer() {
             )}
 
             {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-500">{error}</p>}
+
+            {/* ── Plan Basket (in sidebar) ─────────────────── */}
+            {planPlaces.length > 0 && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50">
+                {/* Header */}
+                <button
+                  type="button"
+                  onClick={() => setShowPlan((v) => !v)}
+                  className="flex w-full items-center justify-between px-4 py-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm font-bold text-emerald-800">
+                      แผนของฉัน
+                    </span>
+                    <span className="rounded-full bg-orange-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                      {planPlaces.length}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-emerald-600">{showPlan ? "▲ ซ่อน" : "▼ ดู"}</span>
+                </button>
+
+                {showPlan && (
+                  <div className="border-t border-emerald-100 px-4 pb-4 pt-3">
+                    {/* Stats row */}
+                    <div className="mb-3 flex gap-3 text-xs text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">{planPlaces.length}</span> สถานที่
+                      </span>
+                      <span className="text-slate-300">·</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-semibold text-slate-700">{planUniqueProvinces}</span> จังหวัด
+                      </span>
+                      {planTotalKm > 0 && (
+                        <>
+                          <span className="text-slate-300">·</span>
+                          <span className="flex items-center gap-1">
+                            ~<span className="font-semibold text-slate-700">{planTotalKm.toLocaleString()}</span> กม.
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Place rows with reorder */}
+                    <div className="space-y-1.5">
+                      {planPlaces.map((place, i) => (
+                        <div key={place.id} className="flex items-center gap-1.5 rounded-xl border border-emerald-100 bg-white px-2.5 py-1.5">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+                            {i + 1}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">
+                            {CATEGORY_ICONS[place.category]} {place.name}
+                          </span>
+                          <div className="flex shrink-0 items-center">
+                            <button
+                              type="button"
+                              disabled={i === 0}
+                              onClick={() => movePlanPlace(place.id, "up")}
+                              className="rounded p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-20"
+                            >
+                              <ArrowUp className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={i === planPlaces.length - 1}
+                              onClick={() => movePlanPlace(place.id, "down")}
+                              className="rounded p-0.5 text-slate-300 hover:text-slate-600 disabled:opacity-20"
+                            >
+                              <ArrowDown className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeFromPlan(place.id)}
+                              className="rounded p-0.5 text-slate-300 hover:text-red-500"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-3 flex flex-col gap-2">
+                      <Link
+                        href={`/?from=${encodeURIComponent(planPlaces[0]?.province ?? "กรุงเทพ")}&to=${encodeURIComponent(planPlaces[planPlaces.length - 1]?.province ?? "")}${planPlaces.length > 2 ? `&via=${planPlaces.slice(1, -1).map((p) => encodeURIComponent(p.province)).join(",")}` : ""}#quick-planner`}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-2.5 text-sm font-bold text-white shadow-md shadow-orange-200 hover:bg-orange-600"
+                      >
+                        คำนวณงบทริปนี้ <ArrowRight className="h-4 w-4" />
+                      </Link>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={copyPlanLink}
+                          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          {copied ? "คัดลอกแล้ว ✓" : "แชร์แผน"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setPlanPlaces([]); setShowPlan(false) }}
+                          className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 hover:border-red-200 hover:text-red-500"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> ล้าง
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* RIGHT PANEL — map */}
