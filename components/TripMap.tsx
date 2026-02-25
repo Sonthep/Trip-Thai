@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useMemo } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import L from "leaflet"
 import { MapContainer, CircleMarker, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
 import type { LatLngExpression } from "leaflet"
@@ -43,6 +43,46 @@ function FitBounds({ positions }: { positions: LatLng[] }) {
     map.fitBounds(bounds as [LatLngExpression, LatLngExpression], { padding: [60, 40], maxZoom: 9 })
   }, [map, positions])
   return null
+}
+
+// ── OSRM real-road routing ─────────────────────────────────────────────
+function OsrmRoute({ positions, fallbackPath }: { positions: LatLng[]; fallbackPath: LatLngExpression[] }) {
+  const [routePath, setRoutePath] = useState<LatLngExpression[] | null>(null)
+  const [fetching, setFetching] = useState(true)
+
+  useEffect(() => {
+    if (positions.length < 2) return
+    const coords = positions.map((p) => `${p.lng},${p.lat}`).join(";")
+    fetch(
+      `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`,
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        const geo = data?.routes?.[0]?.geometry?.coordinates
+        if (geo) {
+          setRoutePath(geo.map(([lng, lat]: [number, number]) => [lat, lng] as LatLngExpression))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setFetching(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions.map((p) => `${p.lat},${p.lng}`).join("|")])
+
+  if (routePath) {
+    return (
+      <Polyline
+        positions={routePath}
+        pathOptions={{ color: "#3b82f6", weight: 5, opacity: 0.9 }}
+      />
+    )
+  }
+  // Fallback: straight dashed line while loading
+  return (
+    <Polyline
+      positions={fallbackPath}
+      pathOptions={{ color: "#38bdf8", weight: 3, opacity: fetching ? 0.4 : 0.75, dashArray: "6 6" }}
+    />
+  )
 }
 
 function makeWaypointIcon(num: number) {
@@ -94,11 +134,8 @@ function TripMapInner({ origin, destination, distanceKm, durationHours, fuelCost
 
         <FitBounds positions={allPositions} />
 
-        {/* Route polyline through all points */}
-        <Polyline
-          positions={path}
-          pathOptions={{ color: "#38bdf8", weight: 3, opacity: 0.85, dashArray: "6 6" }}
-        />
+        {/* OSRM real-road route */}
+        <OsrmRoute positions={allPositions} fallbackPath={path} />
 
         {/* Origin */}
         <CircleMarker
