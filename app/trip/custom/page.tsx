@@ -201,7 +201,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <p className="text-sm text-amber-200">
             <span className="font-semibold text-amber-300">ตัวเลขทั้งหมดเป็นการประมาณเบื้องต้นเท่านั้น</span>
-            {" "}ระยะทาง เวลา และงบ อาจแตกต่างจากความเป็นจริงตามเส้นทาง สภาพรถ และพฤติกรรมการขับขี่
+            {" "}งบ เวลา และระยะทางอาจแตกต่างจากความเป็นจริงตามสภาพรถและพฤติกรรมการขับขี่
             — ใช้เป็น <span className="font-semibold">แนวทางวางแผน</span> ไม่ใช่ตัวเลขแม่นยำ
           </p>
         </div>
@@ -250,7 +250,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
                 </span>
               )}
             </h2>
-            <p className="text-[11px] text-white/30">เส้นตรงโดยประมาณ ไม่ใช่เส้นทางถนนจริง</p>
+            <p className="text-[11px] text-white/30">เส้นทางถนนจริง (OSRM / OpenStreetMap)</p>
           </div>
           <TripMap
             origin={{ position: originPos, label: origin }}
