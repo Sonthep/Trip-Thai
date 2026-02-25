@@ -111,10 +111,6 @@ export function QuickPlanner() {
   function handlePlan() {
     if (estimate?.slug) {
       router.push(`/trip/${estimate.slug}`)
-    } else if (from && to) {
-      router.push(
-        `/api/calculate-trip?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&people=${people}&kmPerLiter=${car.kmPerLiter}`
-      )
     }
   }
 
@@ -292,13 +288,19 @@ export function QuickPlanner() {
                       ({people} คน · {estimate.days} วัน)
                     </p>
                   </div>
-                  <button
-                    onClick={handlePlan}
-                    className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0"
-                  >
-                    ดูแผนเต็ม + วันต่อวัน
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  {estimate?.slug ? (
+                    <button
+                      onClick={handlePlan}
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0"
+                    >
+                      ดูแผนเต็ม + วันต่อวัน
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <p className="max-w-[160px] text-right text-xs text-slate-400">
+                      งบประมาณด้านซ้ายคือการประเมินเบื้องต้น
+                    </p>
+                  )}
                 </div>
               </div>
             )}
