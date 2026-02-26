@@ -5,7 +5,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const secret = searchParams.get("secret")
 
-  if (!secret || secret !== process.env.ADMIN_API_TOKEN) {
+  if (!secret || secret !== process.env.ADMIN_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

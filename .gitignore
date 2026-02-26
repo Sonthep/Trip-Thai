@@ -1,12 +1,14 @@
-# Common ignores
-# Environment files with real credentials
 # v0 runtime files (should only exist in preview, not in git)
-.DS_Store
-.env
-.env*.local
-.next/
-/lib/generated/prisma
+__v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
-__v0_runtime_loader.js
+
+# Common ignores
 node_modules/
+.next/
+.env*.local
+.DS_Store
+/lib/generated/prisma
+
+# Environment files with real credentials
+.env
