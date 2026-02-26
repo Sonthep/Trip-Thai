@@ -21,6 +21,7 @@ import { getSiteUrl } from "@/lib/site"
 import { LeadCaptureDialog } from "@/components/lead-capture-dialog"
 import { TripPageClient } from "@/app/trip/[slug]/page-client"
 import { ShareButton } from "@/components/share-button"
+import { SaveTripButton } from "@/components/save-trip-button"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
@@ -247,6 +248,11 @@ export default async function TripPage({ params }: TripPageProps) {
               tripSlug={trip.slug}
               title={`${trip.name} | TripThai`}
               description={`${trip.durationLabel} · ${trip.budgetRangeLabel}`}
+            />
+            <SaveTripButton
+              type="curated"
+              slug={trip.slug}
+              title={trip.name}
             />
           </div>
         </section>
@@ -480,6 +486,11 @@ export default async function TripPage({ params }: TripPageProps) {
               tripSlug={trip.slug}
               title={`${trip.name} | TripThai`}
               description={`${trip.durationLabel} · ${trip.budgetRangeLabel}`}
+            />
+            <SaveTripButton
+              type="curated"
+              slug={trip.slug}
+              title={trip.name}
             />
           </div>
         </section>

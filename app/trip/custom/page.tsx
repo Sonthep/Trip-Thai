@@ -25,6 +25,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { CustomTripParamsEditor } from "./params-editor"
 import { ShareButton } from "@/components/share-button"
+import { SaveTripButton } from "@/components/save-trip-button"
 
 const CATEGORY_EMOJI: Record<string, string> = {
   nature: "🌿",
@@ -185,10 +186,19 @@ export default async function CustomTripPage({ searchParams }: Props) {
             </Badge>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-3">
             <ShareButton
               title={`${origin} → ${destination} | TripThai`}
               description={`${people} คน · ${days} วัน · งบรวม ~฿${result.total_cost.toLocaleString("th-TH")}`}
+            />
+            <SaveTripButton
+              type="custom"
+              title={`${origin} → ${destination}`}
+              origin={origin}
+              destination={destination}
+              people={people}
+              kmPerLiter={kmPerLiter}
+              places={sp.places}
             />
           </div>
 
