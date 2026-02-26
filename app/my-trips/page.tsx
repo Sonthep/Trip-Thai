@@ -41,7 +41,7 @@ export default async function MyTripsPage() {
               />
             )}
             <div>
-              <p className="text-sm text-white/50">เข้าสู่ระบบด้วย LINE</p>
+              <p className="text-sm text-white/50">{session.user.email ?? "Social Account"}</p>
               <p className="text-lg font-bold">{session.user.name}</p>
             </div>
           </div>
