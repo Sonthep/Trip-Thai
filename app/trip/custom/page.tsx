@@ -79,7 +79,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
   const origin = sp.origin?.trim()
   const destination = sp.destination?.trim()
 
-  if (!origin || !destination || origin === destination) notFound()
+  if (!origin || !destination) notFound()
 
   const people = Math.max(1, Math.min(12, Number(sp.people) || 2))
   const kmPerLiter = Math.max(5, Math.min(30, Number(sp.kmPerLiter) || 12))
