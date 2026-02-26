@@ -9,3 +9,6 @@ node_modules/
 .env*.local
 .DS_Store
 /lib/generated/prisma
+
+# Environment files with real credentials
+.env
