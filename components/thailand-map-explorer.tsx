@@ -18,6 +18,7 @@ type TouristPlace = {
     lat: number
     lng: number
   }
+  imageUrl?: string
 }
 
 type Region = "all" | "north" | "northeast" | "central" | "south"
@@ -462,7 +463,7 @@ export function ThailandMapExplorer() {
     }
   }, [selectedProvince, selectedRegion, provinceMetaMap])
 
-  const selectedPlaces = useMemo(() => {
+  const selectedPlaces: TouristPlace[] = useMemo(() => {
     const keyword = query.trim().toLowerCase()
     return places
       .filter((place) => {
@@ -883,13 +884,14 @@ export function ThailandMapExplorer() {
                       สถานที่แนะนำ
                     </p>
                     <div className="grid grid-cols-2 gap-2">
-                      {selectedPlaces.slice(0, 10).map((place) => {
-                        const inPlan = planPlaces.some((p) => p.id === place.id)
+                      {selectedPlaces.slice(0, 10).map((place: TouristPlace) => {
+                        const inPlan = planPlaces.some((p: TouristPlace) => p.id === place.id)
                         return (
                           <div
                             key={place.id}
                             className={`overflow-hidden rounded-xl border bg-white text-left transition-all hover:shadow-md ${
-                              selectedPlace?.id === place.id ? "border-orange-400" : "border-slate-100"
+                              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                              (selectedPlace as any)?.id === place.id ? "border-orange-400" : "border-slate-100"
                             }`}
                           >
                             <button type="button" className="w-full text-left" onClick={() => setSelectedPlace(place)}>

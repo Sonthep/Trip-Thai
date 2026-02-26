@@ -40,8 +40,8 @@ function FitBounds({ positions }: { positions: LatLng[] }) {
   const map = useMap()
   useMemo(() => {
     if (positions.length < 2) return
-    const bounds = positions.map((p) => [p.lat, p.lng] as LatLngExpression)
-    map.fitBounds(bounds as [LatLngExpression, LatLngExpression], { padding: [60, 40], maxZoom: 9 })
+    const bounds = L.latLngBounds(positions.map((p) => L.latLng(p.lat, p.lng)))
+    map.fitBounds(bounds, { padding: [60, 40], maxZoom: 9 })
   }, [map, positions])
   return null
 }
