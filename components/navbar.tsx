@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
+import { signIn, signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { ChevronDown, MapPin, Menu, X } from "lucide-react"
+import { Bookmark, ChevronDown, LogOut, MapPin, Menu, X } from "lucide-react"
 
 const REGION_ITEMS = [
   { slug: "north", name: "ภาคเหนือ", desc: "เชียงใหม่ · เชียงราย · ปาย", emoji: "🏔️", count: "12+ เส้นทาง", bg: "from-amber-400" },
@@ -22,16 +23,20 @@ const POPULAR_TRIPS = [
 ]
 
 export function Navbar() {
+  const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [exploreOpen, setExploreOpen] = useState(false)
   const [tripsOpen, setTripsOpen] = useState(false)
+  const [userOpen, setUserOpen] = useState(false)
   const exploreRef = useRef<HTMLDivElement>(null)
   const tripsRef = useRef<HTMLDivElement>(null)
+  const userRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (exploreRef.current && !exploreRef.current.contains(e.target as Node)) setExploreOpen(false)
       if (tripsRef.current && !tripsRef.current.contains(e.target as Node)) setTripsOpen(false)
+      if (userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false)
     }
     document.addEventListener("mousedown", onClickOutside)
     return () => document.removeEventListener("mousedown", onClickOutside)
@@ -140,6 +145,54 @@ export function Navbar() {
               วางแผนทริปเลย →
             </Button>
           </Link>
+
+          {/* Auth section */}
+          <div className="ml-2">
+            {session?.user ? (
+              <div ref={userRef} className="relative">
+                <button
+                  onClick={() => setUserOpen((v) => !v)}
+                  className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-orange-400 transition-opacity hover:opacity-80"
+                  aria-label="โปรไฟล์"
+                >
+                  {session.user.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={session.user.image} alt={session.user.name ?? ""} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-orange-500">
+                      {session.user.name?.charAt(0) ?? "U"}
+                    </span>
+                  )}
+                </button>
+                {userOpen && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white py-2 shadow-2xl shadow-slate-300/40">
+                    <div className="border-b border-slate-100 px-4 py-2.5">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{session.user.name}</p>
+                      <p className="text-[11px] text-slate-400 truncate">{session.user.email ?? "Line Account"}</p>
+                    </div>
+                    <Link href="/my-trips" onClick={() => setUserOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                      <Bookmark className="h-4 w-4 text-orange-500" /> ทริปที่บันทึก
+                    </Link>
+                    <button onClick={() => signOut()}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                      <LogOut className="h-4 w-4 text-slate-400" /> ออกจากระบบ
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => signIn("line")}
+                className="flex items-center gap-2 rounded-full border border-[#06c755]/50 bg-[#06c755]/10 px-4 py-2 text-sm font-medium text-[#06c755] transition-colors hover:bg-[#06c755]/20"
+              >
+                <svg viewBox="0 0 40 40" width="16" height="16" fill="currentColor">
+                  <path d="M20 2C10.06 2 2 8.92 2 17.4c0 7.64 6.77 14.03 15.92 15.2.62.13 1.46.41 1.67.93.19.48.13 1.22.06 1.7l-.27 1.62c-.08.48-.38 1.87 1.64 1.02s10.93-6.43 14.91-11.01C38.73 23.8 40 20.73 40 17.4 40 8.92 29.94 2 20 2zm-6.8 20.1H9.38a1 1 0 0 1-1-1V12.5a1 1 0 0 1 2 0v7.6h2.82a1 1 0 0 1 0 2zm3.6 0a1 1 0 0 1-2 0V12.5a1 1 0 0 1 2 0v9.6zm9.25 0a1 1 0 0 1-.65.94.98.98 0 0 1-1.1-.3l-4.5-6.13v5.49a1 1 0 0 1-2 0V12.5a1 1 0 0 1 .65-.94.98.98 0 0 1 1.1.3l4.5 6.13V12.5a1 1 0 0 1 2 0v9.6zm5.7 0h-3.82a1 1 0 0 1-1-1V12.5a1 1 0 0 1 2 0v7.6h2.82a1 1 0 0 1 0 2z" />
+                </svg>
+                เข้าสู่ระบบ
+              </button>
+            )}
+          </div>
         </nav>
 
         {/* Mobile hamburger */}
@@ -175,10 +228,35 @@ export function Navbar() {
               className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
               วิธีใช้
             </Link>
+            {session?.user && (
+              <Link href="/my-trips" onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                <Bookmark className="h-4 w-4 text-orange-500" /> ทริปที่บันทึก
+              </Link>
+            )}
           </nav>
           <Link href="/#quick-planner" onClick={() => setMobileOpen(false)} className="mt-4 block">
             <Button className="w-full bg-orange-500 font-semibold hover:bg-orange-600">วางแผนทริปเลย →</Button>
           </Link>
+          {!session?.user && (
+            <button
+              onClick={() => { setMobileOpen(false); signIn("line") }}
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#06c755]/50 bg-[#06c755]/10 py-3 text-sm font-semibold text-[#06c755]"
+            >
+              <svg viewBox="0 0 40 40" width="18" height="18" fill="currentColor">
+                <path d="M20 2C10.06 2 2 8.92 2 17.4c0 7.64 6.77 14.03 15.92 15.2.62.13 1.46.41 1.67.93.19.48.13 1.22.06 1.7l-.27 1.62c-.08.48-.38 1.87 1.64 1.02s10.93-6.43 14.91-11.01C38.73 23.8 40 20.73 40 17.4 40 8.92 29.94 2 20 2zm-6.8 20.1H9.38a1 1 0 0 1-1-1V12.5a1 1 0 0 1 2 0v7.6h2.82a1 1 0 0 1 0 2zm3.6 0a1 1 0 0 1-2 0V12.5a1 1 0 0 1 2 0v9.6zm9.25 0a1 1 0 0 1-.65.94.98.98 0 0 1-1.1-.3l-4.5-6.13v5.49a1 1 0 0 1-2 0V12.5a1 1 0 0 1 .65-.94.98.98 0 0 1 1.1.3l4.5 6.13V12.5a1 1 0 0 1 2 0v9.6zm5.7 0h-3.82a1 1 0 0 1-1-1V12.5a1 1 0 0 1 2 0v7.6h2.82a1 1 0 0 1 0 2z" />
+              </svg>
+              เข้าสู่ระบบด้วย LINE
+            </button>
+          )}
+          {session?.user && (
+            <button
+              onClick={() => { setMobileOpen(false); signOut() }}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-2.5 text-sm text-slate-500"
+            >
+              <LogOut className="h-4 w-4" /> ออกจากระบบ ({session.user.name})
+            </button>
+          )}
         </div>
       )}
     </header>
