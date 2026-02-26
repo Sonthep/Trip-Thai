@@ -243,7 +243,11 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
           <div className="flex flex-wrap gap-3 md:flex-shrink-0">
             <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
-            <ShareButton tripSlug={trip.slug} />
+            <ShareButton
+              tripSlug={trip.slug}
+              title={`${trip.name} | TripThai`}
+              description={`${trip.durationLabel} · ${trip.budgetRangeLabel}`}
+            />
           </div>
         </section>
 
@@ -472,7 +476,11 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             <LeadCaptureDialog tripName={trip.name} tripSlug={trip.slug} />
-            <ShareButton tripSlug={trip.slug} />
+            <ShareButton
+              tripSlug={trip.slug}
+              title={`${trip.name} | TripThai`}
+              description={`${trip.durationLabel} · ${trip.budgetRangeLabel}`}
+            />
           </div>
         </section>
       </div>

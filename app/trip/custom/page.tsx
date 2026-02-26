@@ -24,6 +24,7 @@ import { TRIPS } from "@/lib/trips"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { CustomTripParamsEditor } from "./params-editor"
+import { ShareButton } from "@/components/share-button"
 
 const CATEGORY_EMOJI: Record<string, string> = {
   nature: "🌿",
@@ -184,6 +185,13 @@ export default async function CustomTripPage({ searchParams }: Props) {
             </Badge>
           </div>
 
+          <div className="mt-4">
+            <ShareButton
+              title={`${origin} → ${destination} | TripThai`}
+              description={`${people} คน · ${days} วัน · งบรวม ~฿${result.total_cost.toLocaleString("th-TH")}`}
+            />
+          </div>
+
           {/* Inline params editor */}
           <CustomTripParamsEditor
             origin={origin}
@@ -215,6 +223,9 @@ export default async function CustomTripPage({ searchParams }: Props) {
               <CardTitle className="mt-2 text-2xl font-semibold text-white md:text-3xl">
                 {formatCurrency(result.total_cost)}
               </CardTitle>
+              <p className="text-base font-medium text-amber-400">
+                คนละ ~{formatCurrency(Math.round(result.total_cost / people))}
+              </p>
               <p className="mt-1 text-[11px] text-white/55">
                 ช่วงประมาณ ฿{lo.toLocaleString("th-TH")} – ฿{hi.toLocaleString("th-TH")}
                 &nbsp;·&nbsp;{people} คน&nbsp;·&nbsp;{days} วัน&nbsp;·&nbsp;{carLabel} ({kmPerLiter} กม./ล.)
