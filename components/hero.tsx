@@ -1,6 +1,7 @@
-import { ArrowRight } from "lucide-react"
+import { MapPin, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { HeroSearch } from "@/components/hero-search"
 
 export function Hero() {
   return (
@@ -59,20 +60,27 @@ export function Hero() {
           คำนวณค่าน้ำมัน ที่พัก อาหาร ทุกเส้นทางทั่วไทย ใน 30 วินาที — พร้อมแผนวันต่อวัน
         </p>
 
-        {/* CTAs */}
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="#quick-planner"
-            className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-orange-500/30 transition-all hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-xl hover:shadow-orange-500/40"
-          >
-            วางแผนทริปเลย
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+        {/* Inline quick search */}
+        <div className="mt-8 w-full max-w-xl">
+          <HeroSearch />
+        </div>
+
+        {/* Secondary link */}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href="#map-explorer"
-            className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-base font-medium text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/40"
+            className="inline-flex items-center gap-1.5 text-sm text-white/55 transition hover:text-white/80"
           >
+            <MapPin className="h-3.5 w-3.5" />
             สำรวจแผนที่ไทย
+          </Link>
+          <span className="h-4 w-px bg-white/20" />
+          <Link
+            href="/buddy"
+            className="inline-flex items-center gap-1.5 text-sm text-white/55 transition hover:text-white/80"
+          >
+            <Users className="h-3.5 w-3.5" />
+            หาเพื่อนร่วมทริป
           </Link>
         </div>
 
