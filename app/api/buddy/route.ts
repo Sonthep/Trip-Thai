@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json()
-    const { origin, destination, travelDate, seats, note, lineContact } = body
+    const { origin, destination, travelDate, seats, places, note, lineContact } = body
 
     if (!origin?.trim() || !destination?.trim() || !travelDate || !lineContact?.trim()) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
         destination: destination.trim(),
         travelDate: new Date(travelDate),
         seats: Math.max(1, Math.min(10, Number(seats) || 1)),
+        places: places?.length ? JSON.stringify(places) : null,
         note: note?.trim() || null,
         lineContact: lineContact.trim(),
       },

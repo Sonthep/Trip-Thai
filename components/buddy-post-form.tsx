@@ -15,12 +15,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { PlaceAutocomplete } from "@/components/place-autocomplete"
 
+type PlaceItem = { id: string; name: string; province: string }
+
 type BuddyPost = {
   id: string
   origin: string
   destination: string
   travelDate: string
   seats: number
+  places: string | null
   note: string | null
   lineContact: string
   createdAt: string
@@ -46,6 +49,8 @@ export function BuddyPostForm({ onCreated }: Props) {
     note: "",
     lineContact: "",
   })
+  const [places, setPlaces] = useState<PlaceItem[]>([])
+  const [placeQuery, setPlaceQuery] = useState("")
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -67,6 +72,7 @@ export function BuddyPostForm({ onCreated }: Props) {
         body: JSON.stringify({
           ...form,
           seats: Number(form.seats),
+          places,
         }),
       })
       if (!res.ok) {
@@ -78,6 +84,8 @@ export function BuddyPostForm({ onCreated }: Props) {
       onCreated(post)
       setOpen(false)
       setForm({ origin: "", destination: "", travelDate: "", seats: "1", note: "", lineContact: "" })
+      setPlaces([])
+      setPlaceQuery("")
     } catch {
       setError("เกิดข้อผิดพลาด กรุณาลองใหม่")
     } finally {
@@ -157,6 +165,42 @@ export function BuddyPostForm({ onCreated }: Props) {
                 className="border-white/10 bg-white/5 text-white"
               />
             </div>
+          </div>
+
+          {/* Places to visit */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-white/70">สถานที่ที่อยากไป (ไม่บังคับ)</Label>
+            <PlaceAutocomplete
+              value={placeQuery}
+              onChange={setPlaceQuery}
+              onSelect={(place) => {
+                if (!places.find((p) => p.id === place.id)) {
+                  setPlaces((prev) => [...prev, place])
+                }
+                setPlaceQuery("")
+              }}
+              placeholder="ค้นหาสถานที่ท่องเที่ยว..."
+              inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+            />
+            {places.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {places.map((p) => (
+                  <span
+                    key={p.id}
+                    className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-xs text-orange-300 ring-1 ring-orange-500/30"
+                  >
+                    {p.name}
+                    <button
+                      type="button"
+                      onClick={() => setPlaces((prev) => prev.filter((x) => x.id !== p.id))}
+                      className="ml-0.5 rounded-full text-orange-300/60 hover:text-orange-300"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* LINE contact */}

@@ -13,12 +13,13 @@ type Place = {
 type Props = {
   value: string
   onChange: (value: string) => void
+  onSelect?: (place: Place) => void
   placeholder?: string
   className?: string
   inputClassName?: string
 }
 
-export function PlaceAutocomplete({ value, onChange, placeholder, inputClassName }: Props) {
+export function PlaceAutocomplete({ value, onChange, onSelect, placeholder, inputClassName }: Props) {
   const [query, setQuery] = useState(value)
   const [suggestions, setSuggestions] = useState<Place[]>([])
   const [open, setOpen] = useState(false)
@@ -27,10 +28,10 @@ export function PlaceAutocomplete({ value, onChange, placeholder, inputClassName
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Sync external value
+  // Sync external value (only when no onSelect handler — free-text mode)
   useEffect(() => {
-    setQuery(value)
-  }, [value])
+    if (!onSelect) setQuery(value)
+  }, [value, onSelect])
 
   // Debounced search
   const search = useCallback((q: string) => {
@@ -65,9 +66,14 @@ export function PlaceAutocomplete({ value, onChange, placeholder, inputClassName
   }
 
   function selectPlace(place: Place) {
-    const label = `${place.name}, ${place.province}`
-    setQuery(label)
-    onChange(label)
+    if (onSelect) {
+      onSelect(place)
+      setQuery("") // clear input after selection in multi-add mode
+    } else {
+      const label = `${place.name}, ${place.province}`
+      setQuery(label)
+      onChange(label)
+    }
     setSuggestions([])
     setOpen(false)
   }

@@ -9,12 +9,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 type InterestUser = { id: string; name: string | null; image: string | null }
 
+type PlaceItem = { id: string; name: string; province: string }
+
 type BuddyPost = {
   id: string
   origin: string
   destination: string
   travelDate: string
   seats: number
+  places: string | null
   note: string | null
   lineContact: string
   createdAt: string
@@ -150,6 +153,23 @@ export function BuddyPostCard({ post, onDelete }: Props) {
             ว่าง {post.seats} ที่นั่ง
           </span>
         </div>
+
+        {/* Places chips */}
+        {(() => {
+          const parsedPlaces: PlaceItem[] = post.places ? (() => { try { return JSON.parse(post.places) } catch { return [] } })() : []
+          return parsedPlaces.length > 0 ? (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {parsedPlaces.map((p) => (
+                <span
+                  key={p.id}
+                  className="rounded-full bg-orange-500/10 px-2.5 py-0.5 text-[11px] font-medium text-orange-300/80 ring-1 ring-orange-500/20"
+                >
+                  {p.name}
+                </span>
+              ))}
+            </div>
+          ) : null
+        })()}
 
         {/* Note */}
         {post.note && (

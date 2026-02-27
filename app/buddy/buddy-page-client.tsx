@@ -12,6 +12,7 @@ type BuddyPost = {
   destination: string
   travelDate: string
   seats: number
+  places: string | null
   note: string | null
   lineContact: string
   createdAt: string
