@@ -143,6 +143,10 @@ export function Navbar() {
             วิธีใช้
           </Link>
 
+          <Link href="/buddy" className="rounded-lg px-3.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900">
+            หาเพื่อนทริป
+          </Link>
+
           <Link href="/#quick-planner" className="ml-3">
             <Button size="sm" className="bg-orange-500 px-5 text-sm font-semibold hover:bg-orange-600">
               วางแผนทริปเลย →
@@ -265,6 +269,10 @@ export function Navbar() {
             <Link href="/#how-it-works" onClick={() => setMobileOpen(false)}
               className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
               วิธีใช้
+            </Link>
+            <Link href="/buddy" onClick={() => setMobileOpen(false)}
+              className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              หาเพื่อนทริป
             </Link>
             {session?.user && (
               <Link href="/my-trips" onClick={() => setMobileOpen(false)}

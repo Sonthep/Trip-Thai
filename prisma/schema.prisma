@@ -35,6 +35,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   savedTrips    SavedTrip[]
+  buddyPosts    TripBuddyPost[]
   createdAt     DateTime    @default(now())
 }
 
@@ -86,6 +87,22 @@ model SavedTrip {
   kmPerLiter  Float?
   places      String?  // JSON array of place IDs
   imageUrl    String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ── TripBuddyPost ─────────────────────────────────────────────────────
+
+model TripBuddyPost {
+  id          String   @id @default(cuid())
+  userId      String
+  origin      String
+  destination String
+  travelDate  DateTime
+  seats       Int      @default(1)
+  note        String?  @db.Text
+  lineContact String
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
