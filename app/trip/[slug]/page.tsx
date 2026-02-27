@@ -26,6 +26,8 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
 import { CopyItineraryButton } from "@/components/copy-itinerary-button"
+import { ReviewSection } from "@/components/review-section"
+import { prisma } from "@/lib/db"
 
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
@@ -129,6 +131,17 @@ export default async function TripPage({ params }: TripPageProps) {
       maximumFractionDigits: 0,
     }).format(amount)
   }
+
+  // Fetch reviews
+  const rawReviews = await prisma.tripReview.findMany({
+    where: { slug },
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { id: true, name: true, image: true } } },
+  })
+  const reviewAvg = rawReviews.length > 0
+    ? rawReviews.reduce((s, r) => s + r.rating, 0) / rawReviews.length
+    : null
+  const reviews = rawReviews.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }))
 
   const relatedTrips = TRIPS.filter(
     (t) =>
@@ -468,6 +481,14 @@ export default async function TripPage({ params }: TripPageProps) {
             </div>
           </section>
         )}
+
+        {/* Reviews */}
+        <ReviewSection
+          slug={slug}
+          initialReviews={reviews}
+          initialAvg={reviewAvg}
+          initialCount={reviews.length}
+        />
 
         {/* CTA Footer */}
         <section className="mt-2 print:hidden rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/15 via-emerald-500/5 to-transparent px-4 py-4 text-xs text-white/80 md:flex md:items-center md:justify-between md:gap-4">
