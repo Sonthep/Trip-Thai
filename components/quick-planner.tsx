@@ -5,16 +5,40 @@ import { useRouter } from "next/navigation"
 import { ArrowRight, ArrowLeftRight, ChevronDown, Fuel, UtensilsCrossed, BedDouble, Route } from "lucide-react"
 import { TRIPS } from "@/lib/trips"
 
-const CAR_TYPES = [
-  { label: "รถเก๋ง (15 กม./ล.)", kmPerLiter: 15 },
-  { label: "รถ SUV (12 กม./ล.)", kmPerLiter: 12 },
-  { label: "รถกระบะ (10 กม./ล.)", kmPerLiter: 10 },
-  { label: "รถ ECO (18 กม./ล.)", kmPerLiter: 18 },
+type TransportType = {
+  label: string
+  icon: string
+  mode: "car" | "ev" | "transit"
+  // car: total fuel shared by passengers
+  kmPerLiter?: number
+  // ev: total electricity cost shared by passengers (บ./กม. total)
+  costPerKmTotal?: number
+  // transit: per-person ticket cost (บ./กม./คน)
+  costPerKmPerPerson?: number
+  transportLabel: string // "น้ำมัน" | "ค่าไฟ" | "ค่าโดยสาร"
+}
+
+const TRANSPORT_TYPES: TransportType[] = [
+  { label: "รถเก๋ง",      icon: "🚗", mode: "car",     kmPerLiter: 15,           transportLabel: "น้ำมัน" },
+  { label: "รถ SUV/PPV",  icon: "🚙", mode: "car",     kmPerLiter: 12,           transportLabel: "น้ำมัน" },
+  { label: "รถกระบะ",     icon: "🛻", mode: "car",     kmPerLiter: 10,           transportLabel: "น้ำมัน" },
+  { label: "Eco Car",     icon: "♻️", mode: "car",     kmPerLiter: 18,           transportLabel: "น้ำมัน" },
+  { label: "รถ EV",       icon: "⚡", mode: "ev",      costPerKmTotal: 3.5,      transportLabel: "ค่าไฟ" },
+  { label: "รถทัวร์",     icon: "🚌", mode: "transit", costPerKmPerPerson: 0.70, transportLabel: "ค่าโดยสาร" },
+  { label: "รถไฟ",        icon: "🚂", mode: "transit", costPerKmPerPerson: 0.50, transportLabel: "ค่าโดยสาร" },
+  { label: "เครื่องบิน",  icon: "✈️", mode: "transit", costPerKmPerPerson: 3.50, transportLabel: "ค่าโดยสาร" },
 ]
 
 const FUEL_PRICE = 42 // THB per liter
 const FOOD_PER_PERSON_PER_DAY = 350
 const STAY_PER_NIGHT = 700
+
+function calcTransportCost(t: TransportType, distanceKm: number, people: number): number {
+  if (t.mode === "car") return Math.round((distanceKm / t.kmPerLiter!) * FUEL_PRICE)
+  if (t.mode === "ev")  return Math.round(distanceKm * t.costPerKmTotal!)
+  // transit: per person × people
+  return Math.round(distanceKm * t.costPerKmPerPerson! * people)
+}
 
 // Extract unique cities
 function getUniqueCities(): string[] {
@@ -38,7 +62,7 @@ export function QuickPlanner() {
   const [from, setFrom] = useState("กรุงเทพ")
   const [to, setTo] = useState("")
   const [people, setPeople] = useState(2)
-  const [carIdx, setCarIdx] = useState(0)
+  const [transportIdx, setTransportIdx] = useState(0)
 
   // Pre-fill from URL params: /?from=X&to=Y#quick-planner
   useEffect(() => {
@@ -49,7 +73,7 @@ export function QuickPlanner() {
     if (paramTo && CITIES.includes(paramTo)) setTo(paramTo)
   }, [])
 
-  const car = CAR_TYPES[carIdx]
+  const transport = TRANSPORT_TYPES[transportIdx]
 
   // Find matching trip or estimate
   const estimate = useMemo(() => {
@@ -64,18 +88,17 @@ export function QuickPlanner() {
     if (matched) {
       const days = matched.itinerary.length || 2
       const nights = Math.max(days - 1, 1)
-      const fuelBase = (matched.distanceKm / car.kmPerLiter) * FUEL_PRICE * 2 // round trip or one-way ×2
-      const fuelCost = Math.round(fuelBase / people) * people // keep as total
+      const transportCost = calcTransportCost(transport, matched.distanceKm * 2, people)
       const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
       const stayCost = STAY_PER_NIGHT * nights
-      const total = fuelCost + foodCost + stayCost + matched.budget.toll
+      const total = transportCost + foodCost + stayCost + matched.budget.toll
       const lo = Math.round(total * 0.85 / 100) * 100
       const hi = Math.round(total * 1.20 / 100) * 100
       return {
         distanceKm: matched.distanceKm,
         durationHours: matched.durationHours,
         days,
-        fuelCost: Math.round(fuelCost),
+        transportCost: Math.round(transportCost),
         foodCost: Math.round(foodCost),
         stayCost: Math.round(stayCost),
         lo,
@@ -84,36 +107,38 @@ export function QuickPlanner() {
       }
     }
 
-    // Generic estimate from haversine-like lookup
+    // Generic estimate
     const destTrip = TRIPS.find((t) => t.to === to || t.from === to)
     const distanceKm = destTrip?.distanceKm ?? 400
     const days = distanceKm > 500 ? 3 : distanceKm > 200 ? 2 : 1
     const nights = Math.max(days - 1, 0)
-    const fuelCost = Math.round((distanceKm / car.kmPerLiter) * FUEL_PRICE)
+    const transportCost = calcTransportCost(transport, distanceKm * 2, people)
     const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
     const stayCost = STAY_PER_NIGHT * nights
-    const total = fuelCost + foodCost + stayCost
+    const total = transportCost + foodCost + stayCost
     const lo = Math.round(total * 0.85 / 100) * 100
     const hi = Math.round(total * 1.20 / 100) * 100
     return {
       distanceKm: Math.round(distanceKm),
       durationHours: Math.round(distanceKm / 70 * 10) / 10,
       days,
-      fuelCost,
+      transportCost,
       foodCost,
       stayCost,
       lo,
       hi,
       slug: null,
     }
-  }, [from, to, people, car])
+  }, [from, to, people, transport])
 
   function handlePlan() {
     if (estimate?.slug) {
       router.push(`/trip/${estimate.slug}`)
     } else if (from && to) {
+      const kmPerLiter = transport.mode === "car" ? transport.kmPerLiter! :
+                         transport.mode === "ev"  ? Math.round(FUEL_PRICE / transport.costPerKmTotal!) : 12
       router.push(
-        `/trip/custom?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&people=${people}&kmPerLiter=${car.kmPerLiter}`
+        `/trip/custom?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&people=${people}&kmPerLiter=${kmPerLiter}`
       )
     }
   }
@@ -206,20 +231,19 @@ export function QuickPlanner() {
               </div>
             </div>
 
-            {/* Car type */}
-            <div className="flex-1 min-w-[140px]">
+            {/* Transport type */}
+            <div className="flex-1 min-w-[160px]">
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">
-                ประเภทรถ
+                การเดินทาง
               </label>
               <div className="relative">
                 <select
-                  value={carIdx}
-                  onChange={(e) => setCarIdx(Number(e.target.value))}
+                  value={transportIdx}
+                  onChange={(e) => setTransportIdx(Number(e.target.value))}
                   className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-9 text-sm font-medium text-slate-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                 >
-                  {CAR_TYPES.map((c, i) => (
-                    <option key={i} value={i}>{c.label}
-                    </option>
+                  {TRANSPORT_TYPES.map((t, i) => (
+                    <option key={i} value={i}>{t.icon} {t.label}</option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -255,10 +279,10 @@ export function QuickPlanner() {
                 <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
                   <div className="rounded-lg bg-white/80 px-3 py-2 text-center">
                     <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
-                      <Fuel className="h-3 w-3 text-orange-400" /> น้ำมัน
+                      <Fuel className="h-3 w-3 text-orange-400" /> {transport.transportLabel}
                     </div>
                     <div className="mt-0.5 font-bold text-slate-900">
-                      ฿{estimate.fuelCost.toLocaleString("th-TH")}
+                      ฿{estimate.transportCost.toLocaleString("th-TH")}
                     </div>
                   </div>
                   <div className="rounded-lg bg-white/80 px-3 py-2 text-center">
@@ -292,13 +316,19 @@ export function QuickPlanner() {
                       ({people} คน · {estimate.days} วัน)
                     </p>
                   </div>
-                  <button
-                    onClick={handlePlan}
-                    className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0"
-                  >
-                    {estimate?.slug ? "ดูแผนเต็ม + วันต่อวัน" : "ดูรายละเอียด"}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  {(estimate.slug || transport.mode !== "transit") ? (
+                    <button
+                      onClick={handlePlan}
+                      className="flex shrink-0 items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-orange-500/25 transition-all hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/30 active:translate-y-0"
+                    >
+                      {estimate?.slug ? "ดูแผนเต็ม + วันต่อวัน" : "ดูรายละเอียด"}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <p className="text-xs text-slate-400 text-right max-w-[140px]">
+                      💡 ค่าโดยสารโดยประมาณ<br />ขึ้นอยู่กับระยะทางและชั้น
+                    </p>
+                  )}
                 </div>
               </div>
             )}
