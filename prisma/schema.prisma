@@ -102,6 +102,9 @@ model TripBuddyPost {
   destination String
   travelDate  DateTime
   seats       Int                 @default(1)
+  groupSize   Int?
+  budget      Int?
+  genderPref  String?             // "any"|"male"|"female"
   returnDate  DateTime?
   vehicle     String?             // "sedan"|"suv"|"van"|"motorcycle"
   costShare   String?             // "fuel"|"fuel_accommodation"|"free"|"discuss"

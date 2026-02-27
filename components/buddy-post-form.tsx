@@ -24,6 +24,9 @@ type BuddyPost = {
   travelDate: string
   returnDate: string | null
   seats: number
+  groupSize: number | null
+  budget: number | null
+  genderPref: string | null
   vehicle: string | null
   costShare: string | null
   places: string | null
@@ -50,6 +53,9 @@ export function BuddyPostForm({ onCreated }: Props) {
     travelDate: "",
     returnDate: "",
     seats: "1",
+    groupSize: "",
+    budget: "",
+    genderPref: "",
     vehicle: "",
     costShare: "",
     note: "",
@@ -89,7 +95,7 @@ export function BuddyPostForm({ onCreated }: Props) {
       const post: BuddyPost = await res.json()
       onCreated(post)
       setOpen(false)
-      setForm({ origin: "", destination: "", travelDate: "", returnDate: "", seats: "1", vehicle: "", costShare: "", note: "", lineContact: "" })
+      setForm({ origin: "", destination: "", travelDate: "", returnDate: "", seats: "1", groupSize: "", budget: "", genderPref: "", vehicle: "", costShare: "", note: "", lineContact: "" })
       setPlaces([])
       setPlaceQuery("")
     } catch {
@@ -176,17 +182,66 @@ export function BuddyPostForm({ onCreated }: Props) {
               </div>
             </div>
 
-            {/* Seats */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/70">จำนวนที่นั่งว่าง *</Label>
-              <Input
-                type="number"
-                min={1}
-                max={10}
-                value={form.seats}
-                onChange={(e) => update("seats", e.target.value)}
-                className="w-20 border-white/10 bg-white/5 text-white"
-              />
+            {/* Seats + Group size + Budget */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">ที่นั่งว่าง *</Label>
+                <Input
+                  type="number" min={1} max={10}
+                  value={form.seats}
+                  onChange={(e) => update("seats", e.target.value)}
+                  className="border-white/10 bg-white/5 text-white"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">
+                  กลุ่มทั้งหมด <span className="text-white/30">(คน)</span>
+                </Label>
+                <Input
+                  type="number" min={1} max={20}
+                  value={form.groupSize}
+                  onChange={(e) => update("groupSize", e.target.value)}
+                  placeholder="รวมคนขับ"
+                  className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">
+                  งบ/คน <span className="text-white/30">(บาท)</span>
+                </Label>
+                <Input
+                  type="number" min={0} step={100}
+                  value={form.budget}
+                  onChange={(e) => update("budget", e.target.value)}
+                  placeholder="โดยประมาณ"
+                  className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                />
+              </div>
+            </div>
+
+            {/* Gender preference */}
+            <div className="space-y-2">
+              <Label className="text-xs text-white/70">รับเพศ</Label>
+              <div className="flex gap-2">
+                {[
+                  { value: "any",    label: "👥 ทุกเพศ" },
+                  { value: "male",   label: "👨 ผู้ชาย" },
+                  { value: "female", label: "👩 ผู้หญิง" },
+                ].map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => update("genderPref", form.genderPref === opt.value ? "" : opt.value)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                      form.genderPref === opt.value
+                        ? "bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/40"
+                        : "border border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Vehicle type */}

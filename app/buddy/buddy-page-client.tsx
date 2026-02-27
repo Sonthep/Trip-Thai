@@ -13,6 +13,9 @@ type BuddyPost = {
   travelDate: string
   returnDate: string | null
   seats: number
+  groupSize: number | null
+  budget: number | null
+  genderPref: string | null
   vehicle: string | null
   costShare: string | null
   places: string | null

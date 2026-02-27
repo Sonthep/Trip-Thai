@@ -25,6 +25,12 @@ const COST_SHARE_LABELS: Record<string, string> = {
   discuss:            "💬 คุยกันเอง",
 }
 
+const GENDER_LABELS: Record<string, string> = {
+  any:    "👥 ทุกเพศ",
+  male:   "👨 เฉพาะผู้ชาย",
+  female: "👩 เฉพาะผู้หญิง",
+}
+
 type BuddyPost = {
   id: string
   origin: string
@@ -32,6 +38,9 @@ type BuddyPost = {
   travelDate: string
   returnDate: string | null
   seats: number
+  groupSize: number | null
+  budget: number | null
+  genderPref: string | null
   vehicle: string | null
   costShare: string | null
   places: string | null
@@ -172,8 +181,20 @@ export function BuddyPostCard({ post, onDelete }: Props) {
           </span>
           <span className="flex items-center gap-1 rounded-full bg-white/8 px-2.5 py-1 text-xs text-white/70">
             <Users className="h-3 w-3" />
-            ว่าง {post.seats} ที่นั่ง
+            {post.groupSize
+              ? `กลุ่ม ${post.groupSize} คน · ว่าง ${post.seats} ที่`
+              : `ว่าง ${post.seats} ที่นั่ง`}
           </span>
+          {post.budget && (
+            <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300/90 ring-1 ring-amber-500/20">
+              💰 ~{post.budget.toLocaleString()} บ./คน
+            </span>
+          )}
+          {post.genderPref && post.genderPref !== "any" && (
+            <span className="flex items-center gap-1 rounded-full bg-violet-500/10 px-2.5 py-1 text-xs text-violet-300/90 ring-1 ring-violet-500/20">
+              {GENDER_LABELS[post.genderPref] ?? post.genderPref}
+            </span>
+          )}
           {post.vehicle && (
             <span className="flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-1 text-xs text-sky-300/90 ring-1 ring-sky-500/20">
               <Car className="h-3 w-3" />
