@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { useSession } from "next-auth/react"
-import { ArrowRight, Calendar, MapPin, Users, MessageCircle, Trash2 } from "lucide-react"
+import { useSession, signIn } from "next-auth/react"
+import { ArrowRight, Calendar, MapPin, Users, MessageCircle, Trash2, Heart } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+type InterestUser = { id: string; name: string | null; image: string | null }
 
 type BuddyPost = {
   id: string
@@ -17,6 +19,7 @@ type BuddyPost = {
   lineContact: string
   createdAt: string
   user: { id: string; name: string | null; image: string | null }
+  interests: { user: InterestUser }[]
 }
 
 type Props = {
@@ -39,6 +42,14 @@ export function BuddyPostCard({ post, onDelete }: Props) {
   const isOwner = session?.user?.id === post.user.id
   const [deleting, setDeleting] = useState(false)
 
+  // Interest state (optimistic)
+  const initialInterested = post.interests.some((i) => i.user.id === session?.user?.id)
+  const [interested, setInterested] = useState(initialInterested)
+  const [interestUsers, setInterestUsers] = useState<InterestUser[]>(
+    post.interests.map((i) => i.user)
+  )
+  const [toggling, setToggling] = useState(false)
+
   async function handleDelete() {
     if (!confirm("ลบโพสต์นี้?")) return
     setDeleting(true)
@@ -47,11 +58,50 @@ export function BuddyPostCard({ post, onDelete }: Props) {
     else setDeleting(false)
   }
 
+  async function handleInterest() {
+    if (!session) {
+      signIn()
+      return
+    }
+    if (toggling) return
+    setToggling(true)
+
+    // Optimistic update
+    const wasInterested = interested
+    setInterested(!wasInterested)
+    if (wasInterested) {
+      setInterestUsers((prev) => prev.filter((u) => u.id !== session.user!.id))
+    } else {
+      setInterestUsers((prev) => [
+        ...prev,
+        { id: session.user!.id!, name: session.user!.name ?? null, image: session.user!.image ?? null },
+      ])
+    }
+
+    try {
+      const res = await fetch(`/api/buddy/${post.id}/interest`, { method: "POST" })
+      if (!res.ok) {
+        setInterested(wasInterested)
+        setInterestUsers(post.interests.map((i) => i.user))
+      }
+    } catch {
+      setInterested(wasInterested)
+      setInterestUsers(post.interests.map((i) => i.user))
+    } finally {
+      setToggling(false)
+    }
+  }
+
   const lineUrl = post.lineContact.startsWith("http")
     ? post.lineContact
     : `https://line.me/ti/p/~${post.lineContact}`
 
   const isPast = new Date(post.travelDate) < new Date()
+
+  // Avatar stack: up to 4 avatars
+  const AVATAR_LIMIT = 4
+  const shownAvatars = interestUsers.slice(0, AVATAR_LIMIT)
+  const extra = interestUsers.length - AVATAR_LIMIT
 
   return (
     <Card className="group border-white/10 bg-white/5 text-white backdrop-blur-sm transition-colors hover:bg-white/8">
@@ -106,17 +156,60 @@ export function BuddyPostCard({ post, onDelete }: Props) {
           <p className="mt-2.5 line-clamp-2 text-xs text-white/55">{post.note}</p>
         )}
 
+        {/* Interest avatars */}
+        {interestUsers.length > 0 && (
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {shownAvatars.map((u) => (
+                <Avatar key={u.id} className="h-6 w-6 ring-2 ring-slate-900">
+                  <AvatarImage src={u.image ?? undefined} />
+                  <AvatarFallback className="bg-orange-500/20 text-[9px] text-orange-300">
+                    {u.name?.slice(0, 2) ?? "?"}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {extra > 0 && (
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 ring-2 ring-slate-900 text-[9px] text-white/60">
+                  +{extra}
+                </div>
+              )}
+            </div>
+            <span className="text-[11px] text-white/40">
+              {interestUsers.length} คนสนใจ
+            </span>
+          </div>
+        )}
+
         {/* Action row */}
         <div className="mt-3 flex items-center justify-between gap-2">
-          <a
-            href={lineUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#06C755] px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            ติดต่อทาง LINE
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={lineUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#06C755] px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              ติดต่อทาง LINE
+            </a>
+
+            {/* Interest button (not shown to post owner) */}
+            {!isOwner && (
+              <button
+                onClick={handleInterest}
+                disabled={toggling}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all disabled:opacity-60 ${
+                  interested
+                    ? "bg-pink-500/20 text-pink-400 ring-1 ring-pink-500/40 hover:bg-pink-500/30"
+                    : "border border-white/10 bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80"
+                }`}
+              >
+                <Heart className={`h-3.5 w-3.5 ${interested ? "fill-pink-400" : ""}`} />
+                สนใจ
+              </button>
+            )}
+          </div>
+
           {isOwner && (
             <button
               onClick={handleDelete}

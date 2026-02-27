@@ -27,6 +27,10 @@ export async function GET(request: Request) {
     orderBy: { travelDate: "asc" },
     include: {
       user: { select: { id: true, name: true, image: true } },
+      interests: {
+        select: { user: { select: { id: true, name: true, image: true } } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   })
 
@@ -60,6 +64,10 @@ export async function POST(request: Request) {
       },
       include: {
         user: { select: { id: true, name: true, image: true } },
+        interests: {
+          select: { user: { select: { id: true, name: true, image: true } } },
+          orderBy: { createdAt: "asc" },
+        },
       },
     })
 

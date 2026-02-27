@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PlaceAutocomplete } from "@/components/place-autocomplete"
 
 type BuddyPost = {
   id: string
@@ -24,6 +25,7 @@ type BuddyPost = {
   lineContact: string
   createdAt: string
   user: { id: string; name: string | null; image: string | null }
+  interests: { user: { id: string; name: string | null; image: string | null } }[]
 }
 
 type Props = {
@@ -114,20 +116,20 @@ export function BuddyPostForm({ onCreated }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-white/70">ต้นทาง *</Label>
-              <Input
+              <PlaceAutocomplete
                 value={form.origin}
-                onChange={(e) => update("origin", e.target.value)}
+                onChange={(v) => update("origin", v)}
                 placeholder="เช่น กรุงเทพ"
-                className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-white/70">ปลายทาง *</Label>
-              <Input
+              <PlaceAutocomplete
                 value={form.destination}
-                onChange={(e) => update("destination", e.target.value)}
+                onChange={(v) => update("destination", v)}
                 placeholder="เช่น เชียงใหม่"
-                className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
+                inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
               />
             </div>
           </div>

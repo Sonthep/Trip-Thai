@@ -37,6 +37,10 @@ export default async function BuddyPage({ searchParams }: Props) {
     orderBy: { travelDate: "asc" },
     include: {
       user: { select: { id: true, name: true, image: true } },
+      interests: {
+        select: { user: { select: { id: true, name: true, image: true } } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   })
 
@@ -45,6 +49,7 @@ export default async function BuddyPage({ searchParams }: Props) {
     ...p,
     travelDate: p.travelDate.toISOString(),
     createdAt: p.createdAt.toISOString(),
+    interests: p.interests.map((i) => ({ user: i.user })),
   }))
 
   return (

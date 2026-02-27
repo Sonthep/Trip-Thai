@@ -35,8 +35,9 @@ model User {
   accounts      Account[]
   sessions      Session[]
   savedTrips    SavedTrip[]
-  buddyPosts    TripBuddyPost[]
-  reviews       TripReview[]
+  buddyPosts      TripBuddyPost[]
+  buddyInterests  TripBuddyInterest[]
+  reviews         TripReview[]
   createdAt     DateTime    @default(now())
 }
 
@@ -95,17 +96,31 @@ model SavedTrip {
 // ── TripBuddyPost ─────────────────────────────────────────────────────
 
 model TripBuddyPost {
-  id          String   @id @default(cuid())
+  id          String              @id @default(cuid())
   userId      String
   origin      String
   destination String
   travelDate  DateTime
-  seats       Int      @default(1)
-  note        String?  @db.Text
+  seats       Int                 @default(1)
+  note        String?             @db.Text
   lineContact String
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  active      Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interests   TripBuddyInterest[]
+}
+
+// ── TripBuddyInterest ─────────────────────────────────────────────────
+
+model TripBuddyInterest {
+  id        String        @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      TripBuddyPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
 }
 
 // ── TripReview ────────────────────────────────────────────────────────

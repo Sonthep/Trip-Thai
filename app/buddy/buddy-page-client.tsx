@@ -16,6 +16,7 @@ type BuddyPost = {
   lineContact: string
   createdAt: string
   user: { id: string; name: string | null; image: string | null }
+  interests: { user: { id: string; name: string | null; image: string | null } }[]
 }
 
 type Props = {
