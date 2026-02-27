@@ -9,24 +9,24 @@ type TransportType = {
   label: string
   icon: string
   mode: "car" | "ev" | "transit"
-  // car: total fuel shared by passengers
   kmPerLiter?: number
-  // ev: total electricity cost shared by passengers (บ./กม. total)
   costPerKmTotal?: number
-  // transit: per-person ticket cost (บ./กม./คน)
   costPerKmPerPerson?: number
-  transportLabel: string // "น้ำมัน" | "ค่าไฟ" | "ค่าโดยสาร"
+  transportLabel: string
+  group: "private" | "public"
 }
 
 const TRANSPORT_TYPES: TransportType[] = [
-  { label: "รถเก๋ง",      icon: "🚗", mode: "car",     kmPerLiter: 15,           transportLabel: "น้ำมัน" },
-  { label: "รถ SUV/PPV",  icon: "🚙", mode: "car",     kmPerLiter: 12,           transportLabel: "น้ำมัน" },
-  { label: "รถกระบะ",     icon: "🛻", mode: "car",     kmPerLiter: 10,           transportLabel: "น้ำมัน" },
-  { label: "Eco Car",     icon: "♻️", mode: "car",     kmPerLiter: 18,           transportLabel: "น้ำมัน" },
-  { label: "รถ EV",       icon: "⚡", mode: "ev",      costPerKmTotal: 3.5,      transportLabel: "ค่าไฟ" },
-  { label: "รถทัวร์",     icon: "🚌", mode: "transit", costPerKmPerPerson: 0.70, transportLabel: "ค่าโดยสาร" },
-  { label: "รถไฟ",        icon: "🚂", mode: "transit", costPerKmPerPerson: 0.50, transportLabel: "ค่าโดยสาร" },
-  { label: "เครื่องบิน",  icon: "✈️", mode: "transit", costPerKmPerPerson: 3.50, transportLabel: "ค่าโดยสาร" },
+  // private
+  { label: "รถเก๋ง",      icon: "🚗", mode: "car",     kmPerLiter: 15,           transportLabel: "น้ำมัน",    group: "private" },
+  { label: "รถ SUV/PPV",  icon: "🚙", mode: "car",     kmPerLiter: 12,           transportLabel: "น้ำมัน",    group: "private" },
+  { label: "รถกระบะ",     icon: "🛻", mode: "car",     kmPerLiter: 10,           transportLabel: "น้ำมัน",    group: "private" },
+  { label: "Eco Car",     icon: "♻️", mode: "car",     kmPerLiter: 18,           transportLabel: "น้ำมัน",    group: "private" },
+  { label: "รถ EV",       icon: "⚡", mode: "ev",      costPerKmTotal: 3.5,      transportLabel: "ค่าไฟ",     group: "private" },
+  // public
+  { label: "รถทัวร์",     icon: "🚌", mode: "transit", costPerKmPerPerson: 0.70, transportLabel: "ค่าโดยสาร", group: "public" },
+  { label: "รถไฟ",        icon: "🚂", mode: "transit", costPerKmPerPerson: 0.50, transportLabel: "ค่าโดยสาร", group: "public" },
+  { label: "เครื่องบิน",  icon: "✈️", mode: "transit", costPerKmPerPerson: 3.50, transportLabel: "ค่าโดยสาร", group: "public" },
 ]
 
 const FUEL_PRICE = 42 // THB per liter
@@ -242,9 +242,18 @@ export function QuickPlanner() {
                   onChange={(e) => setTransportIdx(Number(e.target.value))}
                   className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 pl-4 pr-9 text-sm font-medium text-slate-900 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400/20"
                 >
-                  {TRANSPORT_TYPES.map((t, i) => (
-                    <option key={i} value={i}>{t.icon} {t.label}</option>
-                  ))}
+                  <optgroup label="🚘 ส่วนตัว (แชร์ค่าเชื้อเพลิง)">
+                    {TRANSPORT_TYPES.filter((t) => t.group === "private").map((t, _) => {
+                      const i = TRANSPORT_TYPES.indexOf(t)
+                      return <option key={i} value={i}>{t.icon} {t.label}</option>
+                    })}
+                  </optgroup>
+                  <optgroup label="🎫 สาธารณะ (จ่ายต่อคน)">
+                    {TRANSPORT_TYPES.filter((t) => t.group === "public").map((t) => {
+                      const i = TRANSPORT_TYPES.indexOf(t)
+                      return <option key={i} value={i}>{t.icon} {t.label}</option>
+                    })}
+                  </optgroup>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
