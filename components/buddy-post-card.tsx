@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useSession, signIn } from "next-auth/react"
-import { ArrowRight, Calendar, MapPin, Users, MessageCircle, Trash2, Heart } from "lucide-react"
+import { ArrowRight, Calendar, MapPin, Users, MessageCircle, Trash2, Heart, Car, Banknote } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,12 +11,29 @@ type InterestUser = { id: string; name: string | null; image: string | null }
 
 type PlaceItem = { id: string; name: string; province: string }
 
+const VEHICLE_LABELS: Record<string, string> = {
+  sedan:      "🚗 รถยนต์",
+  suv:        "🚙 SUV/PPV",
+  van:        "🚐 รถตู้",
+  motorcycle: "🏍️ มอเตอร์ไซค์",
+}
+
+const COST_SHARE_LABELS: Record<string, string> = {
+  fuel:               "⛽ แชร์ค่าน้ำมัน",
+  fuel_accommodation: "⛽🏨 น้ำมัน+ที่พัก",
+  free:               "🎁 ฟรี",
+  discuss:            "💬 คุยกันเอง",
+}
+
 type BuddyPost = {
   id: string
   origin: string
   destination: string
   travelDate: string
+  returnDate: string | null
   seats: number
+  vehicle: string | null
+  costShare: string | null
   places: string | null
   note: string | null
   lineContact: string
@@ -147,11 +164,28 @@ export function BuddyPostCard({ post, onDelete }: Props) {
           <span className="flex items-center gap-1 rounded-full bg-white/8 px-2.5 py-1 text-xs text-white/70">
             <Calendar className="h-3 w-3" />
             {formatDate(post.travelDate)}
+            {post.returnDate && (() => {
+              const days = Math.round((new Date(post.returnDate).getTime() - new Date(post.travelDate).getTime()) / 86400000) + 1
+              const nights = days - 1
+              return nights > 0 ? ` · ${days} วัน ${nights} คืน` : ""
+            })()}
           </span>
           <span className="flex items-center gap-1 rounded-full bg-white/8 px-2.5 py-1 text-xs text-white/70">
             <Users className="h-3 w-3" />
             ว่าง {post.seats} ที่นั่ง
           </span>
+          {post.vehicle && (
+            <span className="flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-1 text-xs text-sky-300/90 ring-1 ring-sky-500/20">
+              <Car className="h-3 w-3" />
+              {VEHICLE_LABELS[post.vehicle] ?? post.vehicle}
+            </span>
+          )}
+          {post.costShare && (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300/90 ring-1 ring-emerald-500/20">
+              <Banknote className="h-3 w-3" />
+              {COST_SHARE_LABELS[post.costShare] ?? post.costShare}
+            </span>
+          )}
         </div>
 
         {/* Places chips */}

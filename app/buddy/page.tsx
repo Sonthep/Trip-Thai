@@ -48,6 +48,7 @@ export default async function BuddyPage({ searchParams }: Props) {
   const serialized = posts.map((p) => ({
     ...p,
     travelDate: p.travelDate.toISOString(),
+    returnDate: p.returnDate ? p.returnDate.toISOString() : null,
     createdAt: p.createdAt.toISOString(),
     interests: p.interests.map((i) => ({ user: i.user })),
   }))

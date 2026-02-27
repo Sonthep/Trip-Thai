@@ -22,7 +22,10 @@ type BuddyPost = {
   origin: string
   destination: string
   travelDate: string
+  returnDate: string | null
   seats: number
+  vehicle: string | null
+  costShare: string | null
   places: string | null
   note: string | null
   lineContact: string
@@ -45,7 +48,10 @@ export function BuddyPostForm({ onCreated }: Props) {
     origin: "",
     destination: "",
     travelDate: "",
+    returnDate: "",
     seats: "1",
+    vehicle: "",
+    costShare: "",
     note: "",
     lineContact: "",
   })
@@ -83,7 +89,7 @@ export function BuddyPostForm({ onCreated }: Props) {
       const post: BuddyPost = await res.json()
       onCreated(post)
       setOpen(false)
-      setForm({ origin: "", destination: "", travelDate: "", seats: "1", note: "", lineContact: "" })
+      setForm({ origin: "", destination: "", travelDate: "", returnDate: "", seats: "1", vehicle: "", costShare: "", note: "", lineContact: "" })
       setPlaces([])
       setPlaceQuery("")
     } catch {
@@ -119,41 +125,58 @@ export function BuddyPostForm({ onCreated }: Props) {
           <DialogTitle className="text-white">โพสต์หาเพื่อนร่วมทริป</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Origin + Destination */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/70">ต้นทาง *</Label>
-              <PlaceAutocomplete
-                value={form.origin}
-                onChange={(v) => update("origin", v)}
-                placeholder="เช่น กรุงเทพ"
-                inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/70">ปลายทาง *</Label>
-              <PlaceAutocomplete
-                value={form.destination}
-                onChange={(v) => update("destination", v)}
-                placeholder="เช่น เชียงใหม่"
-                inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
-              />
-            </div>
-          </div>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-1 pb-1">
 
-          {/* Date + Seats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-white/70">วันที่เดินทาง *</Label>
-              <Input
-                type="date"
-                value={form.travelDate}
-                onChange={(e) => update("travelDate", e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                className="border-white/10 bg-white/5 text-white [color-scheme:dark]"
-              />
+            {/* Origin + Destination */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">ต้นทาง *</Label>
+                <PlaceAutocomplete
+                  value={form.origin}
+                  onChange={(v) => update("origin", v)}
+                  placeholder="เช่น กรุงเทพ"
+                  inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">ปลายทาง *</Label>
+                <PlaceAutocomplete
+                  value={form.destination}
+                  onChange={(v) => update("destination", v)}
+                  placeholder="เช่น เชียงใหม่"
+                  inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                />
+              </div>
             </div>
+
+            {/* Travel dates */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">วันออกเดินทาง *</Label>
+                <Input
+                  type="date"
+                  value={form.travelDate}
+                  onChange={(e) => update("travelDate", e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="border-white/10 bg-white/5 text-white [color-scheme:dark]"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-white/70">
+                  วันกลับ <span className="text-white/30">(ถ้ารู้)</span>
+                </Label>
+                <Input
+                  type="date"
+                  value={form.returnDate}
+                  onChange={(e) => update("returnDate", e.target.value)}
+                  min={form.travelDate || new Date().toISOString().split("T")[0]}
+                  className="border-white/10 bg-white/5 text-white [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            {/* Seats */}
             <div className="space-y-1.5">
               <Label className="text-xs text-white/70">จำนวนที่นั่งว่าง *</Label>
               <Input
@@ -162,69 +185,122 @@ export function BuddyPostForm({ onCreated }: Props) {
                 max={10}
                 value={form.seats}
                 onChange={(e) => update("seats", e.target.value)}
-                className="border-white/10 bg-white/5 text-white"
+                className="w-20 border-white/10 bg-white/5 text-white"
               />
             </div>
-          </div>
 
-          {/* Places to visit */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-white/70">สถานที่ที่อยากไป (ไม่บังคับ)</Label>
-            <PlaceAutocomplete
-              value={placeQuery}
-              onChange={setPlaceQuery}
-              onSelect={(place) => {
-                if (!places.find((p) => p.id === place.id)) {
-                  setPlaces((prev) => [...prev, place])
-                }
-                setPlaceQuery("")
-              }}
-              placeholder="ค้นหาสถานที่ท่องเที่ยว..."
-              inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
-            />
-            {places.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {places.map((p) => (
-                  <span
-                    key={p.id}
-                    className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-xs text-orange-300 ring-1 ring-orange-500/30"
+            {/* Vehicle type */}
+            <div className="space-y-2">
+              <Label className="text-xs text-white/70">ยานพาหนะ</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "sedan",      label: "🚗 รถยนต์" },
+                  { value: "suv",        label: "🚙 SUV/PPV" },
+                  { value: "van",        label: "🚐 รถตู้" },
+                  { value: "motorcycle", label: "🏍️ มอเตอร์ไซค์" },
+                ].map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => update("vehicle", form.vehicle === opt.value ? "" : opt.value)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                      form.vehicle === opt.value
+                        ? "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500/40"
+                        : "border border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
                   >
-                    {p.name}
-                    <button
-                      type="button"
-                      onClick={() => setPlaces((prev) => prev.filter((x) => x.id !== p.id))}
-                      className="ml-0.5 rounded-full text-orange-300/60 hover:text-orange-300"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
+                    {opt.label}
+                  </button>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* LINE contact */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-white/70">LINE ID หรือลิงก์ LINE *</Label>
-            <Input
-              value={form.lineContact}
-              onChange={(e) => update("lineContact", e.target.value)}
-              placeholder="เช่น @mylineid หรือ https://line.me/ti/p/~xxx"
-              className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
-            />
-          </div>
+            {/* Cost sharing */}
+            <div className="space-y-2">
+              <Label className="text-xs text-white/70">แชร์ค่าใช้จ่าย</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: "fuel",               label: "⛽ แชร์ค่าน้ำมัน" },
+                  { value: "fuel_accommodation", label: "⛽🏨 น้ำมัน+ที่พัก" },
+                  { value: "free",               label: "🎁 ฟรี ไม่คิดค่าใช้จ่าย" },
+                  { value: "discuss",            label: "💬 คุยกันเอง" },
+                ].map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => update("costShare", form.costShare === opt.value ? "" : opt.value)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                      form.costShare === opt.value
+                        ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
+                        : "border border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* Note */}
-          <div className="space-y-1.5">
-            <Label className="text-xs text-white/70">หมายเหตุ (ไม่บังคับ)</Label>
-            <Textarea
-              value={form.note}
-              onChange={(e) => update("note", e.target.value)}
-              placeholder="เช่น ไปรถ SUV นั่งได้ 4 คน แวะพักที่ลำปาง"
-              rows={3}
-              className="resize-none border-white/10 bg-white/5 text-white placeholder:text-white/30"
-            />
-          </div>
+            {/* Places to visit */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/70">สถานที่ที่อยากไป (ไม่บังคับ)</Label>
+              <PlaceAutocomplete
+                value={placeQuery}
+                onChange={setPlaceQuery}
+                onSelect={(place) => {
+                  if (!places.find((p) => p.id === place.id)) {
+                    setPlaces((prev) => [...prev, place])
+                  }
+                  setPlaceQuery("")
+                }}
+                placeholder="ค้นหาสถานที่ท่องเที่ยว..."
+                inputClassName="h-10 w-full rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+              />
+              {places.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {places.map((p) => (
+                    <span
+                      key={p.id}
+                      className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-1 text-xs text-orange-300 ring-1 ring-orange-500/30"
+                    >
+                      {p.name}
+                      <button
+                        type="button"
+                        onClick={() => setPlaces((prev) => prev.filter((x) => x.id !== p.id))}
+                        className="ml-0.5 rounded-full text-orange-300/60 hover:text-orange-300"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* LINE contact */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/70">LINE ID หรือลิงก์ LINE *</Label>
+              <Input
+                value={form.lineContact}
+                onChange={(e) => update("lineContact", e.target.value)}
+                placeholder="เช่น @mylineid หรือ https://line.me/ti/p/~xxx"
+                className="border-white/10 bg-white/5 text-white placeholder:text-white/30"
+              />
+            </div>
+
+            {/* Note */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-white/70">หมายเหตุ (ไม่บังคับ)</Label>
+              <Textarea
+                value={form.note}
+                onChange={(e) => update("note", e.target.value)}
+                placeholder="รายละเอียดเพิ่มเติม เช่น แวะพักที่ไหน หรือเงื่อนไขพิเศษ"
+                rows={2}
+                className="resize-none border-white/10 bg-white/5 text-white placeholder:text-white/30"
+              />
+            </div>
+
+          </div>{/* end scrollable */}
 
           {error && (
             <p className="flex items-center gap-1.5 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-400">
