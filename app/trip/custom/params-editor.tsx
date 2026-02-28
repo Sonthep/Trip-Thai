@@ -1,8 +1,15 @@
 "use client"
 
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { Users, Car, RotateCcw } from "lucide-react"
+import { Users, Car } from "lucide-react"
+
+const BUDGET_TIERS = [
+  { key: "budget", label: "🟢 ประหยัด" },
+  { key: "mid",    label: "🟡 ปานกลาง" },
+  { key: "comfort",label: "🔴 สบาย" },
+] as const
+type BudgetTierKey = "budget" | "mid" | "comfort"
 
 const CAR_OPTIONS = [
   { label: "รถ ECO (18 กม./ล.)", value: 18 },
@@ -17,19 +24,22 @@ type Props = {
   people: number
   kmPerLiter: number
   places?: string
+  budgetTier?: BudgetTierKey
 }
 
-export function CustomTripParamsEditor({ origin, destination, people, kmPerLiter, places }: Props) {
+export function CustomTripParamsEditor({ origin, destination, people, kmPerLiter, places, budgetTier = "mid" }: Props) {
   const router = useRouter()
   const [localPeople, setLocalPeople] = useState(people)
   const [localKmPerLiter, setLocalKmPerLiter] = useState(kmPerLiter)
+  const [localTier, setLocalTier] = useState<BudgetTierKey>(budgetTier)
 
-  function apply(newPeople: number, newKpl: number) {
+  function apply(newPeople: number, newKpl: number, newTier: BudgetTierKey) {
     const params = new URLSearchParams({
       origin,
       destination,
       people: String(newPeople),
       kmPerLiter: String(newKpl),
+      budgetTier: newTier,
       ...(places ? { places } : {}),
     })
     router.push(`/trip/custom?${params.toString()}`)
@@ -46,7 +56,7 @@ export function CustomTripParamsEditor({ origin, destination, people, kmPerLiter
           onChange={(e) => {
             const v = Number(e.target.value)
             setLocalPeople(v)
-            apply(v, localKmPerLiter)
+            apply(v, localKmPerLiter, localTier)
           }}
           className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-orange-400"
         >
@@ -67,7 +77,7 @@ export function CustomTripParamsEditor({ origin, destination, people, kmPerLiter
           onChange={(e) => {
             const v = Number(e.target.value)
             setLocalKmPerLiter(v)
-            apply(localPeople, v)
+            apply(localPeople, v, localTier)
           }}
           className="rounded-lg border border-white/10 bg-white/10 px-2 py-1 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-orange-400"
         >
@@ -77,8 +87,33 @@ export function CustomTripParamsEditor({ origin, destination, people, kmPerLiter
         </select>
       </div>
 
+      <span className="hidden h-4 w-px bg-white/15 sm:block" />
+
+      {/* Budget tier pills */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-white/50">ระดับงบ</span>
+        <div className="flex gap-1">
+          {BUDGET_TIERS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => {
+                setLocalTier(t.key)
+                apply(localPeople, localKmPerLiter, t.key)
+              }}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                localTier === t.key
+                  ? "bg-orange-500 text-white"
+                  : "bg-white/10 text-white/60 hover:bg-white/20"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <span className="ml-auto text-[10px] text-white/25 flex items-center gap-1">
-        <RotateCcw className="h-3 w-3" /> ปรับแล้วหน้าอัปเดตอัตโนมัติ
+        ปรับแล้วหน้าอัปเดตอัตโนมัติ
       </span>
     </div>
   )

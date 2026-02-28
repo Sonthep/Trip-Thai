@@ -214,6 +214,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
             people={people}
             kmPerLiter={kmPerLiter}
             places={sp.places}
+            budgetTier={budgetTier}
           />
         </div>
       </section>
