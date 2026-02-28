@@ -98,12 +98,61 @@ const CURATED_WIKI: Record<string, { title: string }> = {
   "chon-5": { title: "Ko Si Chang" },
   // Prachuap / Hua Hin
   "pkha-1": { title: "Hua Hin" },
-  "pkha-3": { title: "Khao Sam Roi Yot National Park" },
+  "pkha-2": { title: "Khao Sam Roi Yot National Park" },
+  "pkha-3": { title: "Phraya Nakhon Cave" },
   // Sukhothai
   "suk-1": { title: "Sukhothai Historical Park" },
   "suk-2": { title: "Wat Si Chum" },
   // Nan
   "nan-1": { title: "Wat Phumin" },
+  // Loei
+  "loei-1": { title: "Phu Kradueng National Park" },
+  "loei-2": { title: "Phu Ruea National Park" },
+  "loei-3": { title: "Phu Hin Rong Kla National Park" },
+  "loei-4": { title: "Chiang Khan" },
+  // Udon Thani
+  "udon-1": { title: "Ban Chiang" },
+  "udon-9": { title: "Phu Phrabat Historical Park" },
+  // Ubon Ratchathani
+  "ubon-1": { title: "Pha Taem National Park" },
+  "ubon-2": { title: "Sam Phan Bok" },
+  // Nong Khai
+  "nkhai-1": { title: "Sala Kaeo Ku" },
+  // Mukdahan
+  "mukd-1": { title: "Phu Pha Thoep National Park" },
+  // Surin
+  "surin-2": { title: "Phanom Rung" },
+  // Khon Kaen
+  "kk-6": { title: "Phu Wiang National Park" },
+  // Phrae / Phayao / Lampang
+  "phrae-1": { title: "Mueang Phi" },
+  "lampang-1": { title: "Wat Phra That Lampang Luang" },
+  "lampang-2": { title: "Thailand Elephant Conservation Center" },
+  "phayao-1": { title: "Kwan Phayao" },
+  // Trang
+  "trang-1": { title: "Tham Morakot" },
+  "trang-9": { title: "Ko Muk" },
+  // Trat
+  "trat-1": { title: "Ko Chang, Trat" },
+  "trat-2": { title: "Ko Kut" },
+  // Satun
+  "satun-1": { title: "Ko Tarutao" },
+  "satun-5": { title: "Ko Adang" },
+  // Songkhla
+  "songkhla-1": { title: "Ko Yo" },
+  "songkhla-2": { title: "Songkhla Lake" },
+  // Mae Hong Son
+  "mhs-1": { title: "Pai, Mae Hong Son" },
+  "mhs-2": { title: "Mae Hong Son" },
+  "mhs-3": { title: "Tham Lot" },
+  // Kamphaeng Phet
+  "kphet-1": { title: "Kamphaeng Phet Historical Park" },
+  // Tak
+  "tak-1": { title: "Umphang Wildlife Sanctuary" },
+  "tak-2": { title: "Thi Lo Su waterfall" },
+  // Phetchaburi
+  "phetch-1": { title: "Kaeng Krachan National Park" },
+  "phetch-2": { title: "Cha-am" },
 }
 
 // Module-level cache so we don't re-fetch on every render
@@ -151,18 +200,6 @@ async function fetchWikiRestImage(title: string): Promise<string | null> {
   } catch { return null }
 }
 
-async function searchWikiTitle(query: string, lang = "th"): Promise<string | null> {
-  const url =
-    `https://${lang}.wikipedia.org/w/api.php?action=query&list=search` +
-    `&srsearch=${encodeURIComponent(query)}&srlimit=1&srprop=&format=json&origin=*`
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
-    if (!res.ok) return null
-    const data = await res.json()
-    return (data?.query?.search?.[0]?.title as string | undefined) ?? null
-  } catch { return null }
-}
-
 async function fetchWikiImage(placeId: string, name: string): Promise<string | null> {
   const cacheKey = placeId || name
   if (wikiCache.has(cacheKey)) return wikiCache.get(cacheKey)!
@@ -180,7 +217,7 @@ async function fetchWikiImage(placeId: string, name: string): Promise<string | n
         if (src2) { wikiCache.set(cacheKey, src2); return src2 }
       }
 
-      // 1. Thai Wikipedia — exact name
+      // 1. Thai Wikipedia — exact name (safe: only returns image if exact article exists)
       let src = await fetchWikiImageByTitle(name, "th")
       if (src) { wikiCache.set(cacheKey, src); return src }
 
@@ -190,20 +227,8 @@ async function fetchWikiImage(placeId: string, name: string): Promise<string | n
         src = await fetchWikiImageByTitle(stripped, "th")
         if (src) { wikiCache.set(cacheKey, src); return src }
       }
-
-      // 3. Thai Wikipedia search → canonical title
-      const canonical = await searchWikiTitle(stripped || name, "th")
-      if (canonical) {
-        src = await fetchWikiImageByTitle(canonical, "th")
-        if (src) { wikiCache.set(cacheKey, src); return src }
-      }
-
-      // 4. English Wikipedia search (much better image coverage for Thai tourist places)
-      const enTitle = await searchWikiTitle(stripped || name, "en")
-      if (enTitle) {
-        src = await fetchWikiImageByTitle(enTitle, "en")
-        if (src) { wikiCache.set(cacheKey, src); return src }
-      }
+      // NOTE: Wikipedia search (steps 3+4) intentionally removed—search results are
+      // too unreliable and return wrong articles (concert stages, faces, maps, etc.)
     } catch {
       // network / timeout
     }
