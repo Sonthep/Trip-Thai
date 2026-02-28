@@ -31,31 +31,57 @@ function isGenericUrl(url: string | undefined): boolean {
   return false
 }
 
+async function fetchWikiImageByTitle(title: string): Promise<string | null> {
+  // Use MediaWiki action=query&prop=pageimages — returns images even when REST summary doesn't
+  const url =
+    `https://th.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}` +
+    `&prop=pageimages&pithumbsize=600&format=json&origin=*`
+  const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
+  if (!res.ok) return null
+  const data = await res.json()
+  const pages: Record<string, { thumbnail?: { source: string } }> = data?.query?.pages ?? {}
+  for (const page of Object.values(pages)) {
+    if (page.thumbnail?.source) return page.thumbnail.source
+  }
+  return null
+}
+
+async function searchWikiTitle(query: string): Promise<string | null> {
+  // Use Wikipedia search to find the canonical article title
+  const url =
+    `https://th.wikipedia.org/w/api.php?action=query&list=search` +
+    `&srsearch=${encodeURIComponent(query)}&srlimit=1&srprop=&format=json&origin=*`
+  const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
+  if (!res.ok) return null
+  const data = await res.json()
+  return (data?.query?.search?.[0]?.title as string | undefined) ?? null
+}
+
 async function fetchWikiImage(name: string): Promise<string | null> {
   if (wikiCache.has(name)) return wikiCache.get(name)!
-
-  // Deduplicate concurrent requests for the same name
   if (inFlight.has(name)) return inFlight.get(name)!
 
   const promise = (async () => {
     try {
-      // Try Thai Wikipedia first
-      const res = await fetch(
-        `https://th.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`,
-        { signal: AbortSignal.timeout(4000) },
-      )
-      if (res.ok) {
-        const data = await res.json()
-        const src: string | undefined = data?.thumbnail?.source ?? data?.originalimage?.source
-        if (src) {
-          // Upscale Wikimedia thumbnails to 600px wide
-          const bigger = src.replace(/\/\d+px-/, "/600px-")
-          wikiCache.set(name, bigger)
-          return bigger
-        }
+      // Step 1: try exact name via pageimages API
+      let src = await fetchWikiImageByTitle(name)
+      if (src) { wikiCache.set(name, src); return src }
+
+      // Step 2: strip parenthetical suffix — e.g. "วัดสระเกศ (ภูเขาทอง)" → "วัดสระเกศ"
+      const stripped = name.replace(/\s*\(.*?\)\s*/g, "").trim()
+      if (stripped && stripped !== name) {
+        src = await fetchWikiImageByTitle(stripped)
+        if (src) { wikiCache.set(name, src); return src }
+      }
+
+      // Step 3: Wikipedia search → canonical title → pageimages
+      const canonical = await searchWikiTitle(stripped || name)
+      if (canonical && canonical !== name && canonical !== stripped) {
+        src = await fetchWikiImageByTitle(canonical)
+        if (src) { wikiCache.set(name, src); return src }
       }
     } catch {
-      // network error / timeout — fall through
+      // network / timeout
     }
     wikiCache.set(name, null)
     return null
@@ -74,6 +100,16 @@ const CATEGORY_EMOJI: Record<string, string> = {
   food: "🍜",
   beach: "🏖️",
   viewpoint: "🌅",
+}
+
+// Category fallback photos — picked specifically, not generic recycled IDs
+const CATEGORY_FALLBACK: Record<string, string> = {
+  nature:    "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&q=80",
+  temple:    "https://images.unsplash.com/photo-1604999333679-b86d54738315?w=600&q=80",
+  culture:   "https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=600&q=80",
+  food:      "https://images.unsplash.com/photo-1562802378-063ec186a863?w=600&q=80",
+  beach:     "https://images.unsplash.com/photo-1504214208698-ea1916a2195a?w=600&q=80",
+  viewpoint: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=600&q=80",
 }
 
 type Props = {
@@ -114,14 +150,20 @@ export function PlaceImage({ name, imageUrl, category, className = "", fallbackC
         setSrc(url)
         setStatus("ok")
       } else if (imageUrl && !isGenericUrl(imageUrl)) {
-        // Fallback to original imageUrl if wiki fails but original isn't generic
         setSrc(imageUrl)
         setStatus("ok")
       } else {
-        setStatus("error")
+        // Final fallback: category-specific photo
+        const fallback = CATEGORY_FALLBACK[category]
+        if (fallback) {
+          setSrc(fallback)
+          setStatus("ok")
+        } else {
+          setStatus("error")
+        }
       }
     })
-  }, [name, imageUrl, needsWiki])
+  }, [name, imageUrl, needsWiki, category])
 
   if (status === "loading") {
     return (
