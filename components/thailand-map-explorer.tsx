@@ -677,18 +677,6 @@ export function ThailandMapExplorer() {
 
   const selectedProvinceMeta = selectedProvince ? provinceMetaMap.get(selectedProvince) : null
 
-  // Find trips that involve the selected province
-  const provinceTrips = useMemo(() => {
-    if (!selectedProvince) return []
-    const norm = (s: string) => s.replace(/จังหวัด/g, "").trim()
-    const prov = norm(selectedProvince)
-    return TRIPS.filter((t) => {
-      const from = norm(t.from)
-      const to = norm(t.to)
-      return from.includes(prov) || prov.includes(from) || to.includes(prov) || prov.includes(to)
-    }).slice(0, 4)
-  }, [selectedProvince])
-
   return (
     <section id="explore" className="py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 lg:px-6">
@@ -931,42 +919,12 @@ export function ThailandMapExplorer() {
                   </div>
                 )}
 
-                {/* Matching routes */}
-                <div className="flex-1">
-                  <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    เส้นทางที่มี{selectedProvince}
-                  </p>
-                  {provinceTrips.length > 0 ? (
-                    <div className="space-y-2">
-                      {provinceTrips.map((trip) => (
-                        <Link
-                          key={trip.slug}
-                          href={`/trip/${trip.slug}`}
-                          className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 transition-all hover:border-orange-200 hover:bg-orange-50"
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-slate-800">{trip.name}</p>
-                            <p className="text-[11px] text-slate-400">
-                              {trip.distanceKm} กม. · {trip.featured.budgetLabel}
-                            </p>
-                          </div>
-                          <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-orange-400" />
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="rounded-xl border border-dashed border-slate-200 py-4 text-center text-xs text-slate-400">
-                      ยังไม่มีเส้นทางสำเร็จรูปสำหรับจังหวัดนี้
-                    </p>
-                  )}
-                </div>
-
                 {/* Sticky CTA */}
                 <Link
-                  href={`/?from=กรุงเทพ&to=${encodeURIComponent(selectedProvince)}#quick-planner`}
+                  href={`/trip/custom?origin=${encodeURIComponent("กรุงเทพมหานคร")}&destination=${encodeURIComponent(selectedProvince)}&people=2&kmPerLiter=12`}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-md shadow-orange-200 transition-all hover:bg-orange-600"
                 >
-                  วางแผนทริป {selectedProvince}
+                  คำนวณงบทริป {selectedProvince}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
