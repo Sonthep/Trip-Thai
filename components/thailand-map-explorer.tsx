@@ -276,48 +276,18 @@ function getFeatureCenter(feature: FeatureLike) {
   return { lat, lng }
 }
 
-function getGeoBounds(data: FeatureCollectionLike) {
-  const coordinates: [number, number][] = []
-
-  for (const feature of data.features) {
-    collectCoordinates(feature.geometry?.coordinates, coordinates)
-  }
-
-  if (coordinates.length === 0) {
-    return null
-  }
-
-  let minLng = coordinates[0][0]
-  let maxLng = coordinates[0][0]
-  let minLat = coordinates[0][1]
-  let maxLat = coordinates[0][1]
-
-  for (const [lng, lat] of coordinates) {
-    if (lng < minLng) minLng = lng
-    if (lng > maxLng) maxLng = lng
-    if (lat < minLat) minLat = lat
-    if (lat > maxLat) maxLat = lat
-  }
-
-  return {
-    southWest: [minLat, minLng] as [number, number],
-    northEast: [maxLat, maxLng] as [number, number],
-  }
-}
+// Hardcoded Thailand bounding box — avoids GeoJSON outlier coordinates zooming out map
+const THAILAND_BOUNDS: [[number, number], [number, number]] = [
+  [5.5, 97.5],   // SW: southern tip near Malaysia
+  [20.5, 105.7], // NE: Chiang Rai / Mekong corner
+]
 
 function FitThailandBounds({ data }: { data: FeatureCollectionLike | null }) {
   const map = useMap()
 
   useEffect(() => {
     if (!data) return
-
-    const bounds = getGeoBounds(data)
-    if (!bounds) return
-
-    map.fitBounds([bounds.southWest, bounds.northEast], {
-      padding: [34, 34],
-      maxZoom: 7,
-    })
+    map.fitBounds(THAILAND_BOUNDS, { padding: [16, 16] })
   }, [map, data])
 
   return null
