@@ -6,6 +6,7 @@ import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, Copy, MapPin, Plus, Trash2
 import L from "leaflet"
 import { GeoJSON, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
 import { Input } from "@/components/ui/input"
+import { PlaceImage } from "@/components/place-image"
 import { TRIPS } from "@/lib/trips"
 
 type TouristPlace = {
@@ -842,16 +843,17 @@ export function ThailandMapExplorer() {
                   <ChevronLeft className="h-3.5 w-3.5" />
                   {selectedProvince ? `กลับไปจังหวัด${selectedProvince}` : "กลับรายการ"}
                 </button>
-                {selectedPlace.imageUrl ? (
-                  <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-slate-200">
-                    <img src={selectedPlace.imageUrl} alt={selectedPlace.name} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  </div>
-                ) : (
-                  <div className="flex h-32 items-center justify-center rounded-2xl bg-slate-100 text-5xl">
-                    {CATEGORY_ICONS[selectedPlace.category]}
-                  </div>
-                )}
+                {/* Place detail image */}
+                <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-slate-200">
+                  <PlaceImage
+                    name={selectedPlace.name}
+                    imageUrl={selectedPlace.imageUrl}
+                    category={selectedPlace.category}
+                    className="rounded-2xl"
+                    fallbackClassName="h-48 rounded-2xl text-5xl"
+                  />
+                  <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-t from-black/40 to-transparent" />
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-600 ring-1 ring-orange-200">
                     {CATEGORY_ICONS[selectedPlace.category]}
@@ -918,19 +920,19 @@ export function ThailandMapExplorer() {
                             }`}
                           >
                             <button type="button" className="w-full text-left" onClick={() => setSelectedPlace(place)}>
-                              {place.imageUrl ? (
-                                <div className="relative h-20 w-full overflow-hidden bg-slate-200">
-                                  <img src={place.imageUrl} alt={place.name} className="h-full w-full object-cover" loading="lazy" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                                  <span className="absolute bottom-1 left-2 text-[10px] font-medium text-white drop-shadow">
-                                    {CATEGORY_ICONS[place.category]}
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="flex h-16 items-center justify-center bg-slate-100 text-2xl">
+                              <div className="relative h-20 w-full overflow-hidden bg-slate-200">
+                                <PlaceImage
+                                  name={place.name}
+                                  imageUrl={place.imageUrl}
+                                  category={place.category}
+                                  className=""
+                                  fallbackClassName="h-20 text-2xl"
+                                />
+                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                                <span className="absolute bottom-1 left-2 text-[10px] font-medium text-white drop-shadow">
                                   {CATEGORY_ICONS[place.category]}
-                                </div>
-                              )}
+                                </span>
+                              </div>
                               <p className="line-clamp-2 px-2 pt-1.5 text-[11px] font-medium leading-snug text-slate-700">{place.name}</p>
                             </button>
                             <button
