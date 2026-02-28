@@ -13,31 +13,56 @@ import { StickyMobileCTA } from "@/components/sticky-mobile-cta"
 import { TrendingTrips } from "@/components/trending-trips"
 import { TestimonialsSection } from "@/components/testimonials-section"
 import { SectionSkeleton } from "@/components/section-skeleton"
+import { ErrorBoundary } from "@/components/error-boundary"
 
 export default function Page() {
   return (
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <Hero />
+
       <div className="bg-white">
         <SocialProof />
         <HowItWorks />
       </div>
-      <Suspense fallback={<SectionSkeleton rows={3} />}>
-        <TrendingTrips />
-      </Suspense>
-      <ExperienceBento />
+
+      <ErrorBoundary>
+        <Suspense fallback={<SectionSkeleton rows={3} />}>
+          <TrendingTrips />
+        </Suspense>
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        <Suspense fallback={<SectionSkeleton rows={2} />}>
+          <ExperienceBento />
+        </Suspense>
+      </ErrorBoundary>
+
       <SeasonalCallout />
-      <div id="map-explorer" className="bg-slate-50">
-        <ThailandMapExplorerClient />
-      </div>
+
+      <ErrorBoundary>
+        <Suspense fallback={<div className="h-[520px] bg-slate-50" />}>
+          <div id="map-explorer" className="bg-slate-50">
+            <ThailandMapExplorerClient />
+          </div>
+        </Suspense>
+      </ErrorBoundary>
+
       <div className="bg-white">
-        <FeaturedTrips />
+        <ErrorBoundary>
+          <Suspense fallback={<SectionSkeleton rows={2} />}>
+            <FeaturedTrips />
+          </Suspense>
+        </ErrorBoundary>
         <CtaSection />
       </div>
-      <Suspense fallback={<SectionSkeleton rows={3} />}>
-        <TestimonialsSection />
-      </Suspense>
+
+      <ErrorBoundary>
+        <Suspense fallback={<SectionSkeleton rows={2} />}>
+          <TestimonialsSection />
+        </Suspense>
+      </ErrorBoundary>
+
       <Footer />
       <StickyMobileCTA />
     </div>
