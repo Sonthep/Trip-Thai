@@ -32,78 +32,78 @@ const GENERIC_UNSPLASH_IDS = new Set([
 
 // ── Curated map: place_id → confirmed English Wikipedia article ──────────────
 // Direct title → image — bypasses unreliable search entirely for famous places
-const CURATED_WIKI: Record<string, { title: string; lang: "en" | "th" }> = {
+const CURATED_WIKI: Record<string, { title: string }> = {
   // Bangkok
-  "bkk-1":  { title: "Temple of the Emerald Buddha", lang: "en" },
-  "bkk-2":  { title: "Wat Arun", lang: "en" },
-  "bkk-3":  { title: "Wat Pho", lang: "en" },
-  "bkk-4":  { title: "Yaowarat Road", lang: "en" },
-  "bkk-5":  { title: "Chatuchak Weekend Market", lang: "en" },
-  "bkk-6":  { title: "Khao San Road", lang: "en" },
-  "bkk-7":  { title: "Jim Thompson House", lang: "en" },
-  "bkk-8":  { title: "Benjakitti Park", lang: "en" },
-  "bkk-9":  { title: "Lumphini Park", lang: "en" },
-  "bkk-10": { title: "Wat Saket", lang: "en" },
+  "bkk-1":  { title: "Temple of the Emerald Buddha" },
+  "bkk-2":  { title: "Wat Arun" },
+  "bkk-3":  { title: "Wat Pho" },
+  "bkk-4":  { title: "Yaowarat Road" },
+  "bkk-5":  { title: "Chatuchak Weekend Market" },
+  "bkk-6":  { title: "Khao San Road" },
+  "bkk-7":  { title: "Jim Thompson House" },
+  "bkk-8":  { title: "Benjakitti Park" },
+  "bkk-9":  { title: "Lumphini Park" },
+  "bkk-10": { title: "Wat Saket" },
   // Krabi
-  "krabi-1": { title: "Railay Beach", lang: "en" },
-  "krabi-2": { title: "Phi Phi Islands", lang: "en" },
-  "krabi-3": { title: "Ao Nang", lang: "en" },
-  "krabi-4": { title: "Tiger Cave Temple", lang: "en" },
-  "krabi-5": { title: "Phra Nang Cave", lang: "en" },
-  "krabi-6": { title: "Ko Poda", lang: "en" },
-  "krabi-8": { title: "Ko Lanta", lang: "en" },
+  "krabi-1": { title: "Railay Beach" },
+  "krabi-2": { title: "Phi Phi Islands" },
+  "krabi-3": { title: "Ao Nang" },
+  "krabi-4": { title: "Tiger Cave Temple" },
+  "krabi-5": { title: "Phra Nang Cave" },
+  "krabi-6": { title: "Ko Poda" },
+  "krabi-8": { title: "Ko Lanta" },
   // Kanchanaburi
-  "kan-1": { title: "Bridge on the River Kwai", lang: "en" },
-  "kan-3": { title: "Erawan National Park", lang: "en" },
-  "kan-9": { title: "Three Pagodas Pass", lang: "en" },
+  "kan-1": { title: "Bridge on the River Kwai" },
+  "kan-3": { title: "Erawan National Park" },
+  "kan-9": { title: "Three Pagodas Pass" },
   // Nakhon Ratchasima
-  "nrat-1": { title: "Khao Yai National Park", lang: "en" },
-  "nrat-2": { title: "Phimai historical park", lang: "en" },
-  "nrat-3": { title: "Thao Suranari", lang: "en" },
+  "nrat-1": { title: "Khao Yai National Park" },
+  "nrat-2": { title: "Phimai historical park" },
+  "nrat-3": { title: "Thao Suranari" },
   // Ayutthaya
-  "ayut-1": { title: "Ayutthaya Historical Park", lang: "en" },
-  "ayut-2": { title: "Wat Mahathat, Ayutthaya", lang: "en" },
-  "ayut-4": { title: "Wat Phra Si Sanphet", lang: "en" },
-  "ayut-6": { title: "Wat Chaiwatthanaram", lang: "en" },
-  "ayut-8": { title: "Bang Pa-In Royal Palace", lang: "en" },
+  "ayut-1": { title: "Ayutthaya Historical Park" },
+  "ayut-2": { title: "Wat Mahathat, Ayutthaya" },
+  "ayut-4": { title: "Wat Phra Si Sanphet" },
+  "ayut-6": { title: "Wat Chaiwatthanaram" },
+  "ayut-8": { title: "Bang Pa-In Royal Palace" },
   // Chiang Mai
-  "cmai-1": { title: "Doi Inthanon", lang: "en" },
-  "cmai-2": { title: "Wat Phra That Doi Suthep", lang: "en" },
-  "cmai-4": { title: "Tha Phae Gate", lang: "en" },
-  "cmai-5": { title: "Mon Cham", lang: "en" },
-  "cmai-6": { title: "Wat Chedi Luang", lang: "en" },
+  "cmai-1": { title: "Doi Inthanon" },
+  "cmai-2": { title: "Wat Phra That Doi Suthep" },
+  "cmai-4": { title: "Tha Phae Gate" },
+  "cmai-5": { title: "Mon Cham" },
+  "cmai-6": { title: "Wat Chedi Luang" },
   // Chiang Rai
-  "crai-1": { title: "Wat Rong Khun", lang: "en" },
-  "crai-2": { title: "Baan Dam Museum", lang: "en" },
-  "crai-4": { title: "Phu Chi Fah", lang: "en" },
-  "crai-5": { title: "Golden Triangle", lang: "en" },
-  "crai-6": { title: "Wat Phra That Doi Tung", lang: "en" },
-  "crai-9": { title: "Wat Rong Suea Ten", lang: "en" },
+  "crai-1": { title: "Wat Rong Khun" },
+  "crai-2": { title: "Baan Dam Museum" },
+  "crai-4": { title: "Phu Chi Fah" },
+  "crai-5": { title: "Golden Triangle" },
+  "crai-6": { title: "Wat Phra That Doi Tung" },
+  "crai-9": { title: "Wat Rong Suea Ten" },
   // Phuket
-  "pket-1": { title: "Patong Beach", lang: "en" },
-  "pket-2": { title: "Phuket Old Town", lang: "en" },
-  "pket-3": { title: "Promthep Cape", lang: "en" },
-  "pket-4": { title: "Karon Beach", lang: "en" },
-  "pket-5": { title: "Big Buddha, Phuket", lang: "en" },
-  "pket-8": { title: "Phi Phi Islands", lang: "en" },
-  "pket-10":{ title: "Surin Beach", lang: "en" },
+  "pket-1": { title: "Patong Beach" },
+  "pket-2": { title: "Phuket Old Town" },
+  "pket-3": { title: "Promthep Cape" },
+  "pket-4": { title: "Karon Beach" },
+  "pket-5": { title: "Big Buddha, Phuket" },
+  "pket-8": { title: "Phi Phi Islands" },
+  "pket-10":{ title: "Surin Beach" },
   // Surat Thani / Ko Samui
-  "surat-1": { title: "Ko Samui", lang: "en" },
-  "surat-2": { title: "Ko Tao, Surat Thani", lang: "en" },
-  "surat-3": { title: "Ang Thong National Marine Park", lang: "en" },
+  "surat-1": { title: "Ko Samui" },
+  "surat-2": { title: "Ko Tao, Surat Thani" },
+  "surat-3": { title: "Ang Thong National Marine Park" },
   // Chonburi / Pattaya
-  "chon-1": { title: "Pattaya", lang: "en" },
-  "chon-2": { title: "Ko Lan", lang: "en" },
-  "chon-3": { title: "Nong Nooch Tropical Garden", lang: "en" },
-  "chon-5": { title: "Ko Si Chang", lang: "en" },
+  "chon-1": { title: "Pattaya" },
+  "chon-2": { title: "Ko Lan" },
+  "chon-3": { title: "Nong Nooch Tropical Garden" },
+  "chon-5": { title: "Ko Si Chang" },
   // Prachuap / Hua Hin
-  "pkha-1": { title: "Hua Hin", lang: "en" },
-  "pkha-3": { title: "Khao Sam Roi Yot National Park", lang: "en" },
+  "pkha-1": { title: "Hua Hin" },
+  "pkha-3": { title: "Khao Sam Roi Yot National Park" },
   // Sukhothai
-  "suk-1": { title: "Sukhothai Historical Park", lang: "en" },
-  "suk-2": { title: "Wat Si Chum", lang: "en" },
+  "suk-1": { title: "Sukhothai Historical Park" },
+  "suk-2": { title: "Wat Si Chum" },
   // Nan
-  "nan-1": { title: "Wat Phumin", lang: "en" },
+  "nan-1": { title: "Wat Phumin" },
 }
 
 // Module-level cache so we don't re-fetch on every render
@@ -122,24 +122,45 @@ async function fetchWikiImageByTitle(title: string, lang = "th"): Promise<string
   const url =
     `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}` +
     `&prop=pageimages&pithumbsize=600&format=json&origin=*`
-  const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
-  if (!res.ok) return null
-  const data = await res.json()
-  const pages: Record<string, { thumbnail?: { source: string } }> = data?.query?.pages ?? {}
-  for (const page of Object.values(pages)) {
-    if (page.thumbnail?.source) return page.thumbnail.source
-  }
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    const pages: Record<string, { thumbnail?: { source: string } }> = data?.query?.pages ?? {}
+    for (const page of Object.values(pages)) {
+      if (page.thumbnail?.source) return page.thumbnail.source
+    }
+  } catch { /* timeout */ }
   return null
+}
+
+/**
+ * Wikipedia REST summary API — same endpoint as Wikipedia mobile app.
+ * Returns the article's canonical lead image. Much more accurate than action API.
+ * https://en.wikipedia.org/api/rest_v1/page/summary/{title}
+ */
+async function fetchWikiRestImage(title: string): Promise<string | null> {
+  const slug = encodeURIComponent(title.replace(/ /g, "_"))
+  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    // prefer thumbnail (600px crop) but also accept originalimage
+    return data?.thumbnail?.source ?? data?.originalimage?.source ?? null
+  } catch { return null }
 }
 
 async function searchWikiTitle(query: string, lang = "th"): Promise<string | null> {
   const url =
     `https://${lang}.wikipedia.org/w/api.php?action=query&list=search` +
     `&srsearch=${encodeURIComponent(query)}&srlimit=1&srprop=&format=json&origin=*`
-  const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
-  if (!res.ok) return null
-  const data = await res.json()
-  return (data?.query?.search?.[0]?.title as string | undefined) ?? null
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(4000) })
+    if (!res.ok) return null
+    const data = await res.json()
+    return (data?.query?.search?.[0]?.title as string | undefined) ?? null
+  } catch { return null }
 }
 
 async function fetchWikiImage(placeId: string, name: string): Promise<string | null> {
@@ -149,11 +170,14 @@ async function fetchWikiImage(placeId: string, name: string): Promise<string | n
 
   const promise = (async () => {
     try {
-      // 0. Curated map — direct English Wikipedia article (most accurate)
+      // 0. Curated map — Wikipedia REST summary API (canonical lead image, ~99% accurate)
       if (placeId && CURATED_WIKI[placeId]) {
-        const { title, lang } = CURATED_WIKI[placeId]
-        const src = await fetchWikiImageByTitle(title, lang)
+        const { title } = CURATED_WIKI[placeId]
+        const src = await fetchWikiRestImage(title)
         if (src) { wikiCache.set(cacheKey, src); return src }
+        // REST fallback: action API with same title
+        const src2 = await fetchWikiImageByTitle(title, "en")
+        if (src2) { wikiCache.set(cacheKey, src2); return src2 }
       }
 
       // 1. Thai Wikipedia — exact name
