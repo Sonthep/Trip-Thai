@@ -48,3 +48,18 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ saved: true, id: saved.id })
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 })
+
+  await prisma.savedTrip.deleteMany({
+    where: { id, userId: session.user.id },
+  })
+  return NextResponse.json({ deleted: true })
+}

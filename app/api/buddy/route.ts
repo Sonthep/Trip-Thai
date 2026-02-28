@@ -10,6 +10,11 @@ export async function GET(request: Request) {
 
   const where: Record<string, unknown> = { active: true }
 
+  // Auto-expire: hide posts whose travelDate has already passed (end of that day)
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  where.travelDate = { gte: todayStart }
+
   if (destination) {
     where.destination = { contains: destination, mode: "insensitive" }
   }
