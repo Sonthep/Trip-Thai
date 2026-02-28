@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, Copy, MapPin, Plus, Trash2, X } from "lucide-react"
 import L from "leaflet"
 import { GeoJSON, MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap } from "react-leaflet"
@@ -284,10 +284,12 @@ const THAILAND_BOUNDS: [[number, number], [number, number]] = [
 
 function FitThailandBounds({ data }: { data: FeatureCollectionLike | null }) {
   const map = useMap()
+  const fitted = useRef(false)
 
   useEffect(() => {
-    if (!data) return
-    map.fitBounds(THAILAND_BOUNDS, { padding: [16, 16] })
+    if (!data || fitted.current) return
+    fitted.current = true
+    map.fitBounds(THAILAND_BOUNDS, { padding: [16, 16], animate: false })
   }, [map, data])
 
   return null
@@ -1161,6 +1163,8 @@ export function ThailandMapExplorer() {
               zoom={6}
               minZoom={5}
               maxZoom={13}
+              maxBounds={[[3.5, 95.5], [22.5, 107.5]]}
+              maxBoundsViscosity={0.85}
               scrollWheelZoom
               zoomControl
               attributionControl
