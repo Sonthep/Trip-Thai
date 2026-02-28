@@ -63,6 +63,11 @@ export function QuickPlanner() {
   const [to, setTo] = useState("")
   const [people, setPeople] = useState(2)
   const [transportIdx, setTransportIdx] = useState(0)
+  const [roundTrip, setRoundTrip] = useState(true)
+  const [manualDays, setManualDays] = useState<number | null>(null)
+
+  // Reset manual days when destination changes
+  useEffect(() => { setManualDays(null) }, [to])
 
   // Pre-fill from URL params: /?from=X&to=Y#quick-planner
   useEffect(() => {
@@ -86,9 +91,11 @@ export function QuickPlanner() {
     )
 
     if (matched) {
-      const days = matched.itinerary.length || 2
+      const autoDays = matched.itinerary.length || 2
+      const days = manualDays ?? autoDays
       const nights = Math.max(days - 1, 1)
-      const transportCost = calcTransportCost(transport, matched.distanceKm * 2, people)
+      const km = matched.distanceKm * (roundTrip ? 2 : 1)
+      const transportCost = calcTransportCost(transport, km, people)
       const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
       const stayCost = STAY_PER_NIGHT * nights
       const total = transportCost + foodCost + stayCost + matched.budget.toll
@@ -110,9 +117,11 @@ export function QuickPlanner() {
     // Generic estimate
     const destTrip = TRIPS.find((t) => t.to === to || t.from === to)
     const distanceKm = destTrip?.distanceKm ?? 400
-    const days = distanceKm > 500 ? 3 : distanceKm > 200 ? 2 : 1
+    const autoDays2 = distanceKm > 500 ? 3 : distanceKm > 200 ? 2 : 1
+    const days = manualDays ?? autoDays2
     const nights = Math.max(days - 1, 0)
-    const transportCost = calcTransportCost(transport, distanceKm * 2, people)
+    const km = distanceKm * (roundTrip ? 2 : 1)
+    const transportCost = calcTransportCost(transport, km, people)
     const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
     const stayCost = STAY_PER_NIGHT * nights
     const total = transportCost + foodCost + stayCost
@@ -129,7 +138,7 @@ export function QuickPlanner() {
       hi,
       slug: null,
     }
-  }, [from, to, people, transport])
+  }, [from, to, people, transport, roundTrip, manualDays])
 
   function handlePlan() {
     if (estimate?.slug) {
@@ -258,6 +267,55 @@ export function QuickPlanner() {
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
+          </div>
+
+          {/* Days + Round-trip row */}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">จำนวนวัน</span>
+              <div className="flex items-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setManualDays((d) => Math.max(1, (d ?? estimate?.days ?? 2) - 1))}
+                  disabled={!estimate}
+                  className="flex h-9 w-9 items-center justify-center text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30"
+                >
+                  −
+                </button>
+                <span className="min-w-[2.5rem] select-none text-center text-sm font-bold text-slate-900">
+                  {estimate ? (manualDays ?? estimate.days) : "—"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setManualDays((d) => Math.min(14, (d ?? estimate?.days ?? 2) + 1))}
+                  disabled={!estimate}
+                  className="flex h-9 w-9 items-center justify-center text-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:opacity-30"
+                >
+                  +
+                </button>
+              </div>
+              {manualDays !== null && (
+                <button
+                  type="button"
+                  onClick={() => setManualDays(null)}
+                  className="text-[10px] text-orange-400 transition hover:text-orange-600"
+                >
+                  รีเซ็ต
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setRoundTrip((v) => !v)}
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all ${
+                roundTrip
+                  ? "border-orange-300 bg-orange-50 text-orange-600"
+                  : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300"
+              }`}
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              {roundTrip ? "ไป-กลับ" : "ไปทางเดียว"}
+            </button>
           </div>
 
           {/* Live Budget Preview */}

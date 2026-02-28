@@ -339,6 +339,7 @@ export function ThailandMapExplorer() {
   })
   const [showPlan, setShowPlan] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [mobileTab, setMobileTab] = useState<"list" | "map">("list")
 
   // Persist plan to localStorage
   useEffect(() => {
@@ -753,11 +754,33 @@ export function ThailandMapExplorer() {
 
 
 
+        {/* Mobile tab bar */}
+        <div className="mb-4 flex overflow-hidden rounded-2xl border border-slate-200 bg-white lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileTab("list")}
+            className={`flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${
+              mobileTab === "list" ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            🗺️ รายการสถานที่
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("map")}
+            className={`flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold transition-all ${
+              mobileTab === "map" ? "bg-orange-500 text-white" : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            📍 ดูแผนที่
+          </button>
+        </div>
+
         {/* Split-column layout: sidebar + map */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
 
           {/* LEFT PANEL — control sidebar */}
-          <div className="flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60">
+          <div className={`flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 ${mobileTab === "map" ? "hidden lg:flex" : "flex"}`}>
 
             {/* Search */}
             <div>
@@ -1136,7 +1159,7 @@ export function ThailandMapExplorer() {
           </div>
 
           {/* RIGHT PANEL — map */}
-          <div className="relative min-h-[540px] overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 lg:min-h-0">
+          <div className={`relative overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 lg:self-stretch min-h-[500px] lg:min-h-0 ${mobileTab === "list" ? "hidden lg:block" : "block"}`}>
 
             {/* Region legend */}
             <div className="pointer-events-none absolute bottom-4 left-4 z-[999] flex flex-col gap-1.5 rounded-2xl border border-white/70 bg-white/80 px-3 py-2.5 backdrop-blur-sm">
@@ -1167,7 +1190,7 @@ export function ThailandMapExplorer() {
               scrollWheelZoom
               zoomControl
               attributionControl
-              className="h-[640px] w-full"
+              className="absolute inset-0 h-full w-full"
             >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
