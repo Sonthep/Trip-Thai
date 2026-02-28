@@ -846,6 +846,7 @@ export function ThailandMapExplorer() {
                 {/* Place detail image */}
                 <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-slate-200">
                   <PlaceImage
+                    placeId={selectedPlace.id}
                     name={selectedPlace.name}
                     imageUrl={selectedPlace.imageUrl}
                     category={selectedPlace.category}
@@ -922,6 +923,7 @@ export function ThailandMapExplorer() {
                             <button type="button" className="w-full text-left" onClick={() => setSelectedPlace(place)}>
                               <div className="relative h-20 w-full overflow-hidden bg-slate-200">
                                 <PlaceImage
+                                  placeId={place.id}
                                   name={place.name}
                                   imageUrl={place.imageUrl}
                                   category={place.category}

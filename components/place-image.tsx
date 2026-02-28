@@ -27,7 +27,84 @@ const GENERIC_UNSPLASH_IDS = new Set([
   "photo-1519451241324-20b4ea2c4220", // beach/generic (krabi recycled)
   "photo-1471922694854-ff1b63b20054", // culture/generic
   "photo-1596425163351-0a4f2a2ebf56", // generic
+  "photo-1583417319070-4a69db38a482", // Bali temple (NOT Thai — must stay blacklisted)
 ])
+
+// ── Curated map: place_id → confirmed English Wikipedia article ──────────────
+// Direct title → image — bypasses unreliable search entirely for famous places
+const CURATED_WIKI: Record<string, { title: string; lang: "en" | "th" }> = {
+  // Bangkok
+  "bkk-1":  { title: "Temple of the Emerald Buddha", lang: "en" },
+  "bkk-2":  { title: "Wat Arun", lang: "en" },
+  "bkk-3":  { title: "Wat Pho", lang: "en" },
+  "bkk-4":  { title: "Yaowarat Road", lang: "en" },
+  "bkk-5":  { title: "Chatuchak Weekend Market", lang: "en" },
+  "bkk-6":  { title: "Khao San Road", lang: "en" },
+  "bkk-7":  { title: "Jim Thompson House", lang: "en" },
+  "bkk-8":  { title: "Benjakitti Park", lang: "en" },
+  "bkk-9":  { title: "Lumphini Park", lang: "en" },
+  "bkk-10": { title: "Wat Saket", lang: "en" },
+  // Krabi
+  "krabi-1": { title: "Railay Beach", lang: "en" },
+  "krabi-2": { title: "Phi Phi Islands", lang: "en" },
+  "krabi-3": { title: "Ao Nang", lang: "en" },
+  "krabi-4": { title: "Tiger Cave Temple", lang: "en" },
+  "krabi-5": { title: "Phra Nang Cave", lang: "en" },
+  "krabi-6": { title: "Ko Poda", lang: "en" },
+  "krabi-8": { title: "Ko Lanta", lang: "en" },
+  // Kanchanaburi
+  "kan-1": { title: "Bridge on the River Kwai", lang: "en" },
+  "kan-3": { title: "Erawan National Park", lang: "en" },
+  "kan-9": { title: "Three Pagodas Pass", lang: "en" },
+  // Nakhon Ratchasima
+  "nrat-1": { title: "Khao Yai National Park", lang: "en" },
+  "nrat-2": { title: "Phimai historical park", lang: "en" },
+  "nrat-3": { title: "Thao Suranari", lang: "en" },
+  // Ayutthaya
+  "ayut-1": { title: "Ayutthaya Historical Park", lang: "en" },
+  "ayut-2": { title: "Wat Mahathat, Ayutthaya", lang: "en" },
+  "ayut-4": { title: "Wat Phra Si Sanphet", lang: "en" },
+  "ayut-6": { title: "Wat Chaiwatthanaram", lang: "en" },
+  "ayut-8": { title: "Bang Pa-In Royal Palace", lang: "en" },
+  // Chiang Mai
+  "cmai-1": { title: "Doi Inthanon", lang: "en" },
+  "cmai-2": { title: "Wat Phra That Doi Suthep", lang: "en" },
+  "cmai-4": { title: "Tha Phae Gate", lang: "en" },
+  "cmai-5": { title: "Mon Cham", lang: "en" },
+  "cmai-6": { title: "Wat Chedi Luang", lang: "en" },
+  // Chiang Rai
+  "crai-1": { title: "Wat Rong Khun", lang: "en" },
+  "crai-2": { title: "Baan Dam Museum", lang: "en" },
+  "crai-4": { title: "Phu Chi Fah", lang: "en" },
+  "crai-5": { title: "Golden Triangle", lang: "en" },
+  "crai-6": { title: "Wat Phra That Doi Tung", lang: "en" },
+  "crai-9": { title: "Wat Rong Suea Ten", lang: "en" },
+  // Phuket
+  "pket-1": { title: "Patong Beach", lang: "en" },
+  "pket-2": { title: "Phuket Old Town", lang: "en" },
+  "pket-3": { title: "Promthep Cape", lang: "en" },
+  "pket-4": { title: "Karon Beach", lang: "en" },
+  "pket-5": { title: "Big Buddha, Phuket", lang: "en" },
+  "pket-8": { title: "Phi Phi Islands", lang: "en" },
+  "pket-10":{ title: "Surin Beach", lang: "en" },
+  // Surat Thani / Ko Samui
+  "surat-1": { title: "Ko Samui", lang: "en" },
+  "surat-2": { title: "Ko Tao, Surat Thani", lang: "en" },
+  "surat-3": { title: "Ang Thong National Marine Park", lang: "en" },
+  // Chonburi / Pattaya
+  "chon-1": { title: "Pattaya", lang: "en" },
+  "chon-2": { title: "Ko Lan", lang: "en" },
+  "chon-3": { title: "Nong Nooch Tropical Garden", lang: "en" },
+  "chon-5": { title: "Ko Si Chang", lang: "en" },
+  // Prachuap / Hua Hin
+  "pkha-1": { title: "Hua Hin", lang: "en" },
+  "pkha-3": { title: "Khao Sam Roi Yot National Park", lang: "en" },
+  // Sukhothai
+  "suk-1": { title: "Sukhothai Historical Park", lang: "en" },
+  "suk-2": { title: "Wat Si Chum", lang: "en" },
+  // Nan
+  "nan-1": { title: "Wat Phumin", lang: "en" },
+}
 
 // Module-level cache so we don't re-fetch on every render
 const wikiCache = new Map<string, string | null>()
@@ -65,46 +142,54 @@ async function searchWikiTitle(query: string, lang = "th"): Promise<string | nul
   return (data?.query?.search?.[0]?.title as string | undefined) ?? null
 }
 
-async function fetchWikiImage(name: string): Promise<string | null> {
-  if (wikiCache.has(name)) return wikiCache.get(name)!
-  if (inFlight.has(name)) return inFlight.get(name)!
+async function fetchWikiImage(placeId: string, name: string): Promise<string | null> {
+  const cacheKey = placeId || name
+  if (wikiCache.has(cacheKey)) return wikiCache.get(cacheKey)!
+  if (inFlight.has(cacheKey)) return inFlight.get(cacheKey)!
 
   const promise = (async () => {
     try {
+      // 0. Curated map — direct English Wikipedia article (most accurate)
+      if (placeId && CURATED_WIKI[placeId]) {
+        const { title, lang } = CURATED_WIKI[placeId]
+        const src = await fetchWikiImageByTitle(title, lang)
+        if (src) { wikiCache.set(cacheKey, src); return src }
+      }
+
       // 1. Thai Wikipedia — exact name
       let src = await fetchWikiImageByTitle(name, "th")
-      if (src) { wikiCache.set(name, src); return src }
+      if (src) { wikiCache.set(cacheKey, src); return src }
 
       // 2. Strip parenthetical — "วัดสระเกศ (ภูเขาทอง)" → "วัดสระเกศ"
       const stripped = name.replace(/\s*\(.*?\)\s*/g, "").trim()
       if (stripped && stripped !== name) {
         src = await fetchWikiImageByTitle(stripped, "th")
-        if (src) { wikiCache.set(name, src); return src }
+        if (src) { wikiCache.set(cacheKey, src); return src }
       }
 
       // 3. Thai Wikipedia search → canonical title
       const canonical = await searchWikiTitle(stripped || name, "th")
       if (canonical) {
         src = await fetchWikiImageByTitle(canonical, "th")
-        if (src) { wikiCache.set(name, src); return src }
+        if (src) { wikiCache.set(cacheKey, src); return src }
       }
 
       // 4. English Wikipedia search (much better image coverage for Thai tourist places)
       const enTitle = await searchWikiTitle(stripped || name, "en")
       if (enTitle) {
         src = await fetchWikiImageByTitle(enTitle, "en")
-        if (src) { wikiCache.set(name, src); return src }
+        if (src) { wikiCache.set(cacheKey, src); return src }
       }
     } catch {
       // network / timeout
     }
-    wikiCache.set(name, null)
+    wikiCache.set(cacheKey, null)
     return null
   })()
 
-  inFlight.set(name, promise)
+  inFlight.set(cacheKey, promise)
   const result = await promise
-  inFlight.delete(name)
+  inFlight.delete(cacheKey)
   return result
 }
 
@@ -119,8 +204,8 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 // Category fallback — confirmed Thailand-specific photos
 const CATEGORY_FALLBACK: Record<string, string> = {
-  // Wat Arun, Bangkok (photo-1583417319070 is now NOT blacklisted)
-  temple:    "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&q=80",
+  // Wat Pho, Bangkok (via Wikimedia Commons — confirmed Thai temple)
+  temple:    "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Wat_Pho_temple_Bangkok.jpg/640px-Wat_Pho_temple_Bangkok.jpg",
   // Erawan waterfall / Thai forest
   nature:    "https://images.unsplash.com/photo-1500964757637-c85e8a162699?w=600&q=80",
   // Thai street food / pad thai
@@ -134,6 +219,8 @@ const CATEGORY_FALLBACK: Record<string, string> = {
 }
 
 type Props = {
+  /** place.id from touristPlaces — used for curated Wikipedia lookup */
+  placeId?: string
   name: string
   imageUrl?: string
   category: string
@@ -142,7 +229,7 @@ type Props = {
   fallbackClassName?: string
 }
 
-export function PlaceImage({ name, imageUrl, category, className = "", fallbackClassName = "" }: Props) {
+export function PlaceImage({ placeId = "", name, imageUrl, category, className = "", fallbackClassName = "" }: Props) {
   const needsWiki = isGenericUrl(imageUrl)
   const [src, setSrc] = useState<string | null>(needsWiki ? null : (imageUrl ?? null))
   const [status, setStatus] = useState<"loading" | "ok" | "error">(
@@ -165,7 +252,7 @@ export function PlaceImage({ name, imageUrl, category, className = "", fallbackC
     setStatus("loading")
     setSrc(null)
 
-    fetchWikiImage(name).then((url) => {
+    fetchWikiImage(placeId, name).then((url) => {
       if (!mounted.current) return
       if (url) {
         setSrc(url)
@@ -184,7 +271,7 @@ export function PlaceImage({ name, imageUrl, category, className = "", fallbackC
         }
       }
     })
-  }, [name, imageUrl, needsWiki, category])
+  }, [placeId, name, imageUrl, needsWiki, category])
 
   if (status === "loading") {
     return (
