@@ -30,8 +30,13 @@ const TRANSPORT_TYPES: TransportType[] = [
 ]
 
 const FUEL_PRICE = 42 // THB per liter
-const FOOD_PER_PERSON_PER_DAY = 350
-const STAY_PER_NIGHT = 700
+
+const BUDGET_TIERS = {
+  budget:  { label: "🟢 ประหยัด", foodPerDay: 250, stayPerNight: 500 },
+  mid:     { label: "🟡 ปานกลาง", foodPerDay: 400, stayPerNight: 1000 },
+  comfort: { label: "🔴 สบาย",     foodPerDay: 700, stayPerNight: 2500 },
+} as const
+type BudgetTierKey = keyof typeof BUDGET_TIERS
 
 function calcTransportCost(t: TransportType, distanceKm: number, people: number): number {
   if (t.mode === "car") return Math.round((distanceKm / t.kmPerLiter!) * FUEL_PRICE)
@@ -65,6 +70,7 @@ export function QuickPlanner() {
   const [transportIdx, setTransportIdx] = useState(0)
   const [roundTrip, setRoundTrip] = useState(true)
   const [manualDays, setManualDays] = useState<number | null>(null)
+  const [budgetTier, setBudgetTier] = useState<BudgetTierKey>("mid")
 
   // Reset manual days when destination changes
   useEffect(() => { setManualDays(null) }, [to])
@@ -96,8 +102,9 @@ export function QuickPlanner() {
       const nights = Math.max(days - 1, 1)
       const km = matched.distanceKm * (roundTrip ? 2 : 1)
       const transportCost = calcTransportCost(transport, km, people)
-      const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
-      const stayCost = STAY_PER_NIGHT * nights
+      const { foodPerDay, stayPerNight } = BUDGET_TIERS[budgetTier]
+      const foodCost = foodPerDay * people * days
+      const stayCost = stayPerNight * nights
       const total = transportCost + foodCost + stayCost + matched.budget.toll
       const lo = Math.round(total * 0.85 / 100) * 100
       const hi = Math.round(total * 1.20 / 100) * 100
@@ -108,6 +115,7 @@ export function QuickPlanner() {
         transportCost: Math.round(transportCost),
         foodCost: Math.round(foodCost),
         stayCost: Math.round(stayCost),
+        perPerson: Math.round((transportCost + foodCost + stayCost + matched.budget.toll) / people),
         lo,
         hi,
         slug: matched.slug,
@@ -122,8 +130,9 @@ export function QuickPlanner() {
     const nights = Math.max(days - 1, 0)
     const km = distanceKm * (roundTrip ? 2 : 1)
     const transportCost = calcTransportCost(transport, km, people)
-    const foodCost = FOOD_PER_PERSON_PER_DAY * people * days
-    const stayCost = STAY_PER_NIGHT * nights
+    const { foodPerDay, stayPerNight } = BUDGET_TIERS[budgetTier]
+    const foodCost = foodPerDay * people * days
+    const stayCost = stayPerNight * nights
     const total = transportCost + foodCost + stayCost
     const lo = Math.round(total * 0.85 / 100) * 100
     const hi = Math.round(total * 1.20 / 100) * 100
@@ -134,11 +143,12 @@ export function QuickPlanner() {
       transportCost,
       foodCost,
       stayCost,
+      perPerson: Math.round(total / people),
       lo,
       hi,
       slug: null,
     }
-  }, [from, to, people, transport, roundTrip, manualDays])
+  }, [from, to, people, transport, roundTrip, manualDays, budgetTier])
 
   function handlePlan() {
     if (estimate?.slug) {
@@ -147,7 +157,7 @@ export function QuickPlanner() {
       const kmPerLiter = transport.mode === "car" ? transport.kmPerLiter! :
                          transport.mode === "ev"  ? Math.round(FUEL_PRICE / transport.costPerKmTotal!) : 12
       router.push(
-        `/trip/custom?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&people=${people}&kmPerLiter=${kmPerLiter}`
+        `/trip/custom?origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&people=${people}&kmPerLiter=${kmPerLiter}&budgetTier=${budgetTier}`
       )
     }
   }
@@ -318,6 +328,25 @@ export function QuickPlanner() {
             </button>
           </div>
 
+          {/* Budget Tier Selector */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 shrink-0">ระดับงบ:</span>
+            {(Object.entries(BUDGET_TIERS) as [BudgetTierKey, typeof BUDGET_TIERS[BudgetTierKey]][]).map(([key, tier]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setBudgetTier(key)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                  budgetTier === key
+                    ? "bg-orange-500 text-white shadow-sm"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                {tier.label}
+              </button>
+            ))}
+          </div>
+
           {/* Live Budget Preview */}
           <div
             className={`mt-4 overflow-hidden rounded-xl transition-all duration-300 ${
@@ -373,14 +402,14 @@ export function QuickPlanner() {
                 {/* Total range + CTA */}
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs text-slate-500">งบรวมประมาณ</p>
+                    <p className="text-xs text-slate-500">งบรวมประมาณ ({BUDGET_TIERS[budgetTier].label})</p>
                     <p className="text-xl font-bold text-slate-900">
                       ฿{estimate.lo.toLocaleString("th-TH")}
                       <span className="mx-1 text-slate-400">–</span>
                       {estimate.hi.toLocaleString("th-TH")}
                     </p>
-                    <p className="text-xs text-slate-400">
-                      ({people} คน · {estimate.days} วัน)
+                    <p className="text-xs font-semibold text-orange-600">
+                      คนละ ~฿{estimate.perPerson.toLocaleString("th-TH")} ({people} คน · {estimate.days} วัน)
                     </p>
                   </div>
                   {(estimate.slug || transport.mode !== "transit") ? (

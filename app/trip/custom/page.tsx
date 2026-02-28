@@ -52,6 +52,7 @@ type Props = {
     people?: string
     kmPerLiter?: string
     places?: string
+    budgetTier?: string
   }>
 }
 
@@ -83,11 +84,15 @@ export default async function CustomTripPage({ searchParams }: Props) {
 
   const people = Math.max(1, Math.min(12, Number(sp.people) || 2))
   const kmPerLiter = Math.max(5, Math.min(30, Number(sp.kmPerLiter) || 12))
+  const budgetTier =
+    sp.budgetTier === "budget" || sp.budgetTier === "comfort"
+      ? (sp.budgetTier as "budget" | "comfort")
+      : ("mid" as const)
 
-  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42 })
+  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier })
   const days = Math.max(1, Math.round(probe.distance_km / 350) + 1)
 
-  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42 })
+  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier })
 
   const lo = Math.round((result.total_cost * 0.85) / 100) * 100
   const hi = Math.round((result.total_cost * 1.2) / 100) * 100
@@ -140,7 +145,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
     { key: "toll" as const, name: "ค่าทางด่วน", value: result.toll_cost },
     { key: "food" as const, name: "ค่าอาหาร", value: result.food_cost },
     { key: "accommodation" as const, name: "ค่าที่พัก", value: result.accommodation_cost },
-  ]
+  ].filter((item) => item.value > 0)
 
   const relatedTrips = TRIPS.filter(
     (t) => t.from === origin || t.to === destination || t.from === destination || t.to === origin
@@ -229,12 +234,22 @@ export default async function CustomTripPage({ searchParams }: Props) {
         <section>
           <Card className="border-white/10 bg-slate-900/80 shadow-xl shadow-black/30">
             <CardHeader className="pb-3">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">งบประมาณรวมโดยประมาณ</p>
+              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">
+                งบประมาณรวมโดยประมาณ
+                {result.budget_tier && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70"
+                  >
+                    {result.budget_tier === "budget" ? "🟢 ประหยัด" : result.budget_tier === "comfort" ? "🔴 สบาย" : "🟡 ปานกลาง"}
+                  </Badge>
+                )}
+              </p>
               <CardTitle className="mt-2 text-2xl font-semibold text-white md:text-3xl">
                 {formatCurrency(result.total_cost)}
               </CardTitle>
               <p className="text-base font-medium text-amber-400">
-                คนละ ~{formatCurrency(Math.round(result.total_cost / people))}
+                คนละ ~{formatCurrency(result.cost_per_person)}
               </p>
               <p className="mt-1 text-[11px] text-white/55">
                 ช่วงประมาณ ฿{lo.toLocaleString("th-TH")} – ฿{hi.toLocaleString("th-TH")}
@@ -245,9 +260,9 @@ export default async function CustomTripPage({ searchParams }: Props) {
               {[
                 { icon: Fuel, color: "text-amber-400", bg: "bg-amber-400/10", label: "ค่าน้ำมัน", value: result.fuel_cost },
                 { icon: Coins, color: "text-sky-400", bg: "bg-sky-400/10", label: "ค่าทางด่วน", value: result.toll_cost },
-                { icon: Utensils, color: "text-emerald-400", bg: "bg-emerald-400/10", label: "ค่าอาหาร", value: result.food_cost },
-                { icon: BedDouble, color: "text-violet-400", bg: "bg-violet-400/10", label: "ค่าที่พัก", value: result.accommodation_cost },
-              ].map(({ icon: Icon, color, bg, label, value }) => (
+                { icon: Utensils, color: "text-emerald-400", bg: "bg-emerald-400/10", label: `ค่าอาหาร (฿${result.food_per_person_per_day}/คน/วัน)`, value: result.food_cost },
+                { icon: BedDouble, color: "text-violet-400", bg: "bg-violet-400/10", label: `ค่าที่พัก (฿${result.accommodation_per_night}/คืน)`, value: result.accommodation_cost },
+              ].filter((item) => item.value > 0).map(({ icon: Icon, color, bg, label, value }) => (
                 <div key={label} className={`rounded-xl border border-white/8 ${bg} p-3`}>
                   <div className="flex items-center gap-1.5 mb-1">
                     <Icon className={`h-3.5 w-3.5 ${color}`} />

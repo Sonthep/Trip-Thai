@@ -122,7 +122,7 @@ export default async function TripPage({ params }: TripPageProps) {
     { key: "toll", name: "ค่าทางด่วน", value: budget.toll },
     { key: "food", name: "ค่าอาหาร", value: budget.food },
     { key: "accommodation", name: "ค่าที่พัก", value: budget.accommodation },
-  ]
+  ].filter((item) => item.value > 0)
 
   function formatCurrency(amount: number) {
     return new Intl.NumberFormat("th-TH", {

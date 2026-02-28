@@ -16,6 +16,10 @@ export async function POST(request: Request) {
       people: Number(body.people) || 1,
       kmPerLiter: Number(body.kmPerLiter) || 12,
       fuelPrice: Number(body.fuelPrice) || 38,
+      budgetTier:
+        body.budgetTier === "budget" || body.budgetTier === "comfort"
+          ? (body.budgetTier as "budget" | "comfort")
+          : "mid",
     }
 
     const result = calculateTrip(input)

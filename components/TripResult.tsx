@@ -26,10 +26,20 @@ export function TripResult({ result }: TripResultProps) {
     food_cost,
     accommodation_cost,
     total_cost,
+    cost_per_person,
+    budget_tier,
+    food_per_person_per_day,
+    accommodation_per_night,
     ordered_stops,
     route_plan,
     segments,
   } = result
+
+  const tierLabel: Record<string, string> = {
+    budget: "🟢 ประหยัด",
+    mid: "🟡 ปานกลาง",
+    comfort: "🔴 สบาย",
+  }
 
   const breakdown = [
     {
@@ -62,18 +72,30 @@ export function TripResult({ result }: TripResultProps) {
     },
   ]
 
+  const visibleBreakdown = breakdown.filter((item) => item.value > 0)
   const safeTotal = total_cost || breakdown.reduce((sum, item) => sum + item.value, 0)
 
   return (
     <Card className="border-white/10 bg-slate-950/80 text-white shadow-2xl shadow-black/40 backdrop-blur-xl">
       <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/50">สรุปงบประมาณทั้งทริป</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/50">สรุปงบประมาณทั้งทริป
+            {budget_tier && (
+              <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/70">
+                {tierLabel[budget_tier] ?? budget_tier}
+              </span>
+            )}
+          </p>
           <CardTitle className="mt-2 flex items-center gap-2 text-2xl font-semibold text-white md:text-3xl">
             <PartyPopper className="h-6 w-6 text-[hsl(24,90%,65%)]" />
             {formatCurrency(total_cost)}
           </CardTitle>
-          <p className="mt-1 text-xs text-white/55">ประมาณการเบื้องต้น สามารถเปลี่ยนแปลงได้ตามการใช้จริง</p>
+          {cost_per_person > 0 && (
+            <p className="mt-1 text-sm font-semibold text-orange-300">
+              ≈ {formatCurrency(cost_per_person)} / คน
+            </p>
+          )}
+          <p className="mt-0.5 text-xs text-white/55">ประมาณการเบื้องต้น สามารถเปลี่ยนแปลงได้ตามการใช้จริง</p>
         </div>
         <div className="hidden rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right text-xs md:block">
           <div className="flex items-center justify-end gap-1 text-[11px] font-medium text-white/70">
@@ -104,7 +126,7 @@ export function TripResult({ result }: TripResultProps) {
 
         {/* Breakdown list */}
         <div className="space-y-4">
-          {breakdown.map((item) => {
+          {visibleBreakdown.map((item) => {
             const Icon = item.icon
             const percentage = safeTotal > 0 ? (item.value / safeTotal) * 100 : 0
 
@@ -119,7 +141,15 @@ export function TripResult({ result }: TripResultProps) {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-white">{formatCurrency(item.value)}</p>
-                    <p className="text-[11px] text-white/55">{percentage.toFixed(0)}% ของงบรวม</p>
+                    {item.key === "food" && food_per_person_per_day > 0 && (
+                      <p className="text-[11px] text-white/45">{formatCurrency(food_per_person_per_day)}/คน/วัน</p>
+                    )}
+                    {item.key === "accommodation" && accommodation_per_night > 0 && (
+                      <p className="text-[11px] text-white/45">{formatCurrency(accommodation_per_night)}/คืน</p>
+                    )}
+                    {item.key !== "food" && item.key !== "accommodation" && (
+                      <p className="text-[11px] text-white/55">{percentage.toFixed(0)}% ของงบรวม</p>
+                    )}
                   </div>
                 </div>
                 <div className="relative h-1.5 overflow-hidden rounded-full bg-white/10">

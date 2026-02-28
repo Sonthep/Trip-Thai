@@ -9,6 +9,8 @@ export type TripCalculationInput = {
   people: number
   kmPerLiter: number
   fuelPrice: number
+  /** ประหยัด / ปานกลาง / สบาย — affects food & accommodation estimates */
+  budgetTier?: "budget" | "mid" | "comfort"
 }
 
 export type TripSegment = {
@@ -27,6 +29,10 @@ export type TripCalculationResult = {
   food_cost: number
   accommodation_cost: number
   total_cost: number
+  cost_per_person: number
+  budget_tier: "budget" | "mid" | "comfort"
+  food_per_person_per_day: number
+  accommodation_per_night: number
   ordered_stops: string[]
   route_plan: string[]
   segments: TripSegment[]
@@ -41,6 +47,20 @@ type MockRoute = {
   toll_cost: number
 }
 
+// Budget tiers: food per person/day + accommodation per night
+const BUDGET_TIERS = {
+  budget:  { foodPerPersonPerDay: 250, accommodationPerNight: 500 },
+  mid:     { foodPerPersonPerDay: 400, accommodationPerNight: 1000 },
+  comfort: { foodPerPersonPerDay: 700, accommodationPerNight: 2500 },
+} as const
+
+// Bangkok-area cities — toll roads apply only here
+const BANGKOK_AREA = new Set(["กรุงเทพ", "กรุงเทพมหานคร", "นนทบุรี", "ปทุมธานี", "สมุทรปราการ", "นครปฐม"])
+
+function isBangkokArea(place: string) {
+  return BANGKOK_AREA.has(place.trim())
+}
+
 // Mock route data – this would normally come from an external routing API.
 const MOCK_ROUTES: MockRoute[] = [
   {
@@ -49,7 +69,7 @@ const MOCK_ROUTES: MockRoute[] = [
     destination: "เชียงใหม่",
     distance_km: 700,
     duration_hours: 9.5,
-    toll_cost: 320,
+    toll_cost: 60, // expressway exit BKK only
   },
   {
     id: "bkk-pattaya",
@@ -163,9 +183,12 @@ function estimateSegment(origin: string, destination: string) {
   const duration = Number((roadDistance / 75).toFixed(1))
 
   const toll =
-    roadDistance <= 90 ? 0 :
-    roadDistance <= 220 ? Math.round(roadDistance * 0.55) :
-    Math.round(roadDistance * 0.75)
+    // Thai intercity highways are free — toll only near BKK metro (<150km) or mocked routes
+    roadDistance <= 90 && (isBangkokArea(origin) || isBangkokArea(destination))
+      ? Math.round(roadDistance * 0.55)
+      : roadDistance <= 150 && (isBangkokArea(origin) || isBangkokArea(destination))
+      ? Math.round(roadDistance * 0.40)
+      : 0
 
   return {
     distance_km: roadDistance,
@@ -254,6 +277,8 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
   const safePeople = Number.isFinite(input.people) && input.people > 0 ? input.people : 1
   const safeKmPerLiter = Number.isFinite(input.kmPerLiter) && input.kmPerLiter > 0 ? input.kmPerLiter : 12
   const safeFuelPrice = Number.isFinite(input.fuelPrice) && input.fuelPrice > 0 ? input.fuelPrice : 38
+  const tier = input.budgetTier ?? "mid"
+  const { foodPerPersonPerDay, accommodationPerNight } = BUDGET_TIERS[tier]
 
   const sanitizedStops = normalizeStops(input.stops, safeOrigin, safeDestination)
   const orderedStops =
@@ -285,11 +310,12 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
   const toll_cost = segments.reduce((sum, segment) => sum + segment.toll_cost, 0)
 
   const fuel_cost = (distance_km / safeKmPerLiter) * safeFuelPrice
-  const food_cost = safeDays * safePeople * 300
+  const food_cost = foodPerPersonPerDay * safePeople * safeDays
   const accommodation_nights = Math.max(safeDays - 1, 0)
-  const accommodation_cost = accommodation_nights * 1200
+  const accommodation_cost = accommodationPerNight * accommodation_nights
 
   const total_cost = fuel_cost + toll_cost + food_cost + accommodation_cost
+  const cost_per_person = Math.round(total_cost / safePeople)
 
   const round = (value: number) => Math.round(value)
 
@@ -301,6 +327,10 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
     food_cost: round(food_cost),
     accommodation_cost: round(accommodation_cost),
     total_cost: round(total_cost),
+    cost_per_person,
+    budget_tier: tier,
+    food_per_person_per_day: foodPerPersonPerDay,
+    accommodation_per_night: accommodationPerNight,
     ordered_stops: orderedStops,
     route_plan: routePlan,
     segments,

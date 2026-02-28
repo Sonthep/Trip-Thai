@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useEffect, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useRef, useState } from "react"
 import L from "leaflet"
 import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } from "react-leaflet"
 import type { LatLngExpression } from "leaflet"
@@ -38,11 +38,16 @@ export type TripMapProps = {
 
 function FitBounds({ positions }: { positions: LatLng[] }) {
   const map = useMap()
-  useMemo(() => {
-    if (positions.length < 2) return
+  const fitted = useRef(false)
+  const posKey = positions.map((p) => `${p.lat},${p.lng}`).join("|")
+
+  useEffect(() => {
+    if (positions.length < 2 || fitted.current) return
+    fitted.current = true
     const bounds = L.latLngBounds(positions.map((p) => L.latLng(p.lat, p.lng)))
-    map.fitBounds(bounds, { padding: [60, 40], maxZoom: 9 })
-  }, [map, positions])
+    map.fitBounds(bounds, { padding: [60, 40], maxZoom: 9, animate: false })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posKey])
   return null
 }
 
