@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import { Navbar } from "@/components/navbar"
 import { Hero } from "@/components/hero"
-import { QuickPlanner } from "@/components/quick-planner"
 import { SocialProof } from "@/components/social-proof"
 import { HowItWorks } from "@/components/how-it-works"
 import { ExperienceBento } from "@/components/experience-bento"
@@ -24,7 +23,6 @@ export default function Page() {
         <SocialProof />
         <HowItWorks />
       </div>
-      <QuickPlanner />
       <Suspense fallback={<SectionSkeleton rows={3} />}>
         <TrendingTrips />
       </Suspense>

@@ -61,7 +61,7 @@ export function Hero() {
         </p>
 
         {/* Inline quick search */}
-        <div className="mt-8 w-full max-w-xl">
+        <div className="mt-8 w-full max-w-2xl">
           <HeroSearch />
         </div>
 
