@@ -1,7 +1,6 @@
 import { MapPin, Users } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { HeroSearch } from "@/components/hero-search"
 
 export function Hero() {
   return (
@@ -59,11 +58,6 @@ export function Hero() {
         <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/70">
           คำนวณค่าน้ำมัน ที่พัก อาหาร ทุกเส้นทางทั่วไทย ใน 30 วินาที — พร้อมแผนวันต่อวัน
         </p>
-
-        {/* Inline quick search */}
-        <div className="mt-8 w-full max-w-2xl">
-          <HeroSearch />
-        </div>
 
         {/* Secondary link */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
