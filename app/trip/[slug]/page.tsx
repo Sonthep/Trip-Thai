@@ -7,11 +7,9 @@ import {
   ArrowRight,
   Car,
   Clock,
-  Coins,
   Map,
   MapPin,
 } from "lucide-react"
-import { TripBudgetChart } from "@/components/TripBudgetChart"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
 import { getTripBySlug, TRIPS } from "@/lib/trips"
 import { getSiteUrl } from "@/lib/site"
@@ -115,11 +113,6 @@ export default async function TripPage({ params }: TripPageProps) {
 
   const { budget } = trip
   const baseUrl = getSiteUrl()
-  const budgetData = [
-    { key: "travel", name: "ค่าเดินทาง", value: budget.fuel + budget.toll },
-    { key: "food", name: "ค่าอาหาร", value: budget.food },
-    { key: "accommodation", name: "ค่าที่พัก", value: budget.accommodation },
-  ].filter((item) => item.value > 0)
 
   function formatCurrency(amount: number) {
     return new Intl.NumberFormat("th-TH", {
@@ -267,7 +260,7 @@ export default async function TripPage({ params }: TripPageProps) {
           </div>
         </section>
 
-        {/* Budget Summary Card */}
+        {/* Budget Summary + Breakdown + Chart */}
         <section>
           <SlugBudgetCards
             initialTravel={budget.fuel + budget.toll}
@@ -275,65 +268,6 @@ export default async function TripPage({ params }: TripPageProps) {
             initialAccommodation={budget.accommodation}
             durationLabel={`ประมาณการสำหรับ ${trip.itinerary.length} วัน (${trip.budgetRangeLabel})`}
           />
-        </section>
-
-        {/* Budget Breakdown Section */}
-        <section className="grid gap-6 md:grid-cols-[3fr,2fr] md:items-stretch">
-          <Card className="border-white/10 bg-slate-900/80">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base text-white">
-                <Coins className="h-4 w-4 text-amber-400" />
-                รายละเอียดงบประมาณ
-              </CardTitle>
-              <p className="mt-1 text-xs text-white/60">
-                สัดส่วนค่าใช้จ่ายหลักของทริปนี้ แบ่งตามหมวดหมู่ เพื่อช่วยให้คุณวางแผนได้ง่ายขึ้น
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs text-white/75">
-              {budgetData.map((item) => {
-                const percentage = (item.value / budget.total) * 100
-                const colorClass =
-                  item.key === "travel" ? "bg-amber-400" :
-                  item.key === "food" ? "bg-emerald-400" : "bg-violet-400"
-
-                return (
-                  <div key={item.key} className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className={`h-2.5 w-2.5 rounded-full ${colorClass}`} />
-                        <span>{item.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-white">{formatCurrency(item.value)}</p>
-                        <p className="text-[11px] text-white/55">{percentage.toFixed(0)}% ของงบรวม</p>
-                      </div>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                      <div
-                        className={`h-full ${colorClass}`}
-                        style={{ width: `${Math.min(percentage, 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-
-          <Card className="border-white/10 bg-slate-900/80">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-white">สัดส่วนงบประมาณ (กราฟ)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <TripBudgetChart
-                data={budgetData as {
-                  key: "fuel" | "toll" | "food" | "accommodation"
-                  name: string
-                  value: number
-                }[]}
-              />
-            </CardContent>
-          </Card>
         </section>
 
         {/* Day-by-day Itinerary */}
