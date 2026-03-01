@@ -4,10 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowRight, Loader2, MapPin } from "lucide-react"
 
-const POPULAR_DESTINATIONS = [
-  "เชียงใหม่", "ภูเก็ต", "กระบี่", "เขาใหญ่", "หัวหิน", "พัทยา", "เชียงราย",
-]
-
 export function HeroSearch() {
   const router = useRouter()
   const [origin, setOrigin] = useState("")
@@ -21,11 +17,6 @@ export function HeroSearch() {
     router.push(
       `/trip/custom?origin=${encodeURIComponent(origin.trim())}&destination=${encodeURIComponent(destination.trim())}&people=2&kmPerLiter=12&budgetTier=mid`
     )
-  }
-
-  function setDest(dest: string) {
-    setDestination(dest)
-    if (!origin.trim()) setOrigin("กรุงเทพมหานคร")
   }
 
   return (
@@ -67,20 +58,6 @@ export function HeroSearch() {
         </div>
       </form>
 
-      {/* Popular quick-pick */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-xs text-white/35">ยอดนิยม:</span>
-        {POPULAR_DESTINATIONS.map((dest) => (
-          <button
-            key={dest}
-            type="button"
-            onClick={() => setDest(dest)}
-            className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-white/60 transition hover:border-orange-400/50 hover:bg-orange-500/10 hover:text-orange-300"
-          >
-            {dest}
-          </button>
-        ))}
-      </div>
     </div>
   )
 }
