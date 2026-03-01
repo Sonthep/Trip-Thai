@@ -17,6 +17,7 @@ type Props = {
   travelCostOverride?: number
   foodCost: number
   accommodationCost: number
+  tripDays: number
 }
 
 function formatCurrency(amount: number) {
@@ -27,14 +28,14 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-function EditableRateField({
+function EditableAmount({
   value,
+  color,
   onCommit,
-  suffix,
 }: {
   value: number
+  color: string
   onCommit: (v: number) => void
-  suffix: string
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(String(value))
@@ -48,7 +49,7 @@ function EditableRateField({
 
   function commit() {
     const n = parseInt(draft, 10)
-    if (Number.isFinite(n) && n > 0) onCommit(n)
+    if (Number.isFinite(n) && n >= 0) onCommit(n)
     setEditing(false)
   }
 
@@ -59,7 +60,7 @@ function EditableRateField({
         <input
           ref={inputRef}
           type="number"
-          min={1}
+          min={0}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
@@ -67,14 +68,13 @@ function EditableRateField({
             if (e.key === "Enter") commit()
             if (e.key === "Escape") setEditing(false)
           }}
-          className="w-20 rounded border border-orange-400/60 bg-slate-800 px-1.5 py-0.5 text-xs font-semibold text-white focus:outline-none focus:ring-1 focus:ring-orange-400"
+          className="w-24 rounded border border-orange-400/60 bg-slate-800 px-1.5 py-0.5 text-sm font-bold focus:outline-none focus:ring-1 focus:ring-orange-400"
         />
-        {suffix}
         <button
           onMouseDown={(e) => { e.preventDefault(); commit() }}
-          className="ml-0.5 rounded p-0.5 text-orange-400 hover:bg-orange-400/10"
+          className="rounded p-0.5 text-orange-400 hover:bg-orange-400/10"
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-3.5 w-3.5" />
         </button>
       </span>
     )
@@ -83,10 +83,10 @@ function EditableRateField({
   return (
     <button
       onClick={open}
-      className="inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      className={`inline-flex items-center gap-1 rounded-md px-1 py-0.5 font-bold text-sm ${color} transition hover:opacity-70`}
     >
-      ฿{value.toLocaleString("th-TH")}{suffix}
-      <Pencil className="h-2.5 w-2.5 opacity-50" />
+      {formatCurrency(value)}
+      <Pencil className="h-2.5 w-2.5 opacity-40" />
     </button>
   )
 }
@@ -95,14 +95,11 @@ export function BudgetCardsEditor({
   origin, destination, people, kmPerLiter, places, budgetTier,
   foodPerDay, accommodationPerNight,
   travelCost, travelCostOverride, foodCost, accommodationCost,
+  tripDays,
 }: Props) {
   const router = useRouter()
 
-  function pushUpdate(params: {
-    travel?: number
-    food?: number
-    accom?: number
-  }) {
+  function pushUpdate(params: { travel?: number; food?: number; accom?: number }) {
     const searchParams = new URLSearchParams({
       origin,
       destination,
@@ -111,7 +108,11 @@ export function BudgetCardsEditor({
       budgetTier,
       foodPerDay: String(params.food ?? foodPerDay),
       accommodationPerNight: String(params.accom ?? accommodationPerNight),
-      ...(params.travel !== undefined ? { travelCost: String(params.travel) } : travelCostOverride !== undefined ? { travelCost: String(travelCostOverride) } : {}),
+      ...(params.travel !== undefined
+        ? { travelCost: String(params.travel) }
+        : travelCostOverride !== undefined
+        ? { travelCost: String(travelCostOverride) }
+        : {}),
       ...(places ? { places } : {}),
     })
     router.push(`/trip/custom?${searchParams.toString()}`)
@@ -123,63 +124,41 @@ export function BudgetCardsEditor({
       icon: Car,
       color: "text-amber-400",
       bg: "bg-amber-400/10",
-      label: (
-        <span className="flex flex-wrap items-center gap-0.5">
-          ค่าเดินทาง&nbsp;
-          <EditableRateField
-            value={travelCost}
-            suffix=""
-            onCommit={(v) => pushUpdate({ travel: v })}
-          />
-        </span>
-      ),
+      label: "ค่าเดินทาง",
       value: travelCost,
+      onCommit: (v: number) => pushUpdate({ travel: v }),
     },
     {
       key: "food",
       icon: Utensils,
       color: "text-emerald-400",
       bg: "bg-emerald-400/10",
-      label: (
-        <span className="flex flex-wrap items-center gap-0.5">
-          ค่าอาหาร&nbsp;
-          <EditableRateField
-            value={foodPerDay}
-            suffix="/คน/วัน"
-            onCommit={(v) => pushUpdate({ food: v })}
-          />
-        </span>
-      ),
+      label: "ค่าอาหาร",
       value: foodCost,
+      onCommit: (v: number) =>
+        pushUpdate({ food: Math.max(1, Math.round(v / Math.max(people, 1) / Math.max(tripDays, 1))) }),
     },
     {
       key: "accommodation",
       icon: BedDouble,
       color: "text-violet-400",
       bg: "bg-violet-400/10",
-      label: (
-        <span className="flex flex-wrap items-center gap-0.5">
-          ค่าที่พัก&nbsp;
-          <EditableRateField
-            value={accommodationPerNight}
-            suffix="/คืน"
-            onCommit={(v) => pushUpdate({ accom: v })}
-          />
-        </span>
-      ),
+      label: "ค่าที่พัก",
       value: accommodationCost,
+      onCommit: (v: number) =>
+        pushUpdate({ accom: Math.max(1, Math.round(v / Math.max(tripDays, 1))) }),
     },
   ].filter((c) => c.value > 0)
 
   return (
     <div className="grid grid-cols-3 gap-3 text-xs text-white/75">
-      {cards.map(({ key, icon: Icon, color, bg, label, value }) => (
+      {cards.map(({ key, icon: Icon, color, bg, label, value, onCommit }) => (
         <div key={key} className={`rounded-xl border border-white/8 ${bg} p-3`}>
-          <div className="flex flex-wrap items-center gap-1.5 mb-1">
+          <div className="flex items-center gap-1.5 mb-1">
             <Icon className={`h-3.5 w-3.5 shrink-0 ${color}`} />
             <span>{label}</span>
           </div>
-          <p className={`font-bold text-sm ${color}`}>{formatCurrency(value)}</p>
+          <EditableAmount value={value} color={color} onCommit={onCommit} />
         </div>
       ))}
     </div>

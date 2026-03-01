@@ -264,6 +264,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
                 travelCostOverride={travelCostOverride}
                 foodCost={result.food_cost}
                 accommodationCost={result.accommodation_cost}
+                tripDays={days}
               />
             </CardContent>
           </Card>
