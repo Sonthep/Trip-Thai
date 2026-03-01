@@ -20,6 +20,8 @@ export async function POST(request: Request) {
         body.budgetTier === "budget" || body.budgetTier === "comfort"
           ? (body.budgetTier as "budget" | "comfort")
           : "mid",
+      ...(body.foodPerDay ? { foodPerDay: Math.max(1, Number(body.foodPerDay)) } : {}),
+      ...(body.accommodationPerNight ? { accommodationPerNight: Math.max(1, Number(body.accommodationPerNight)) } : {}),
     }
 
     const result = calculateTrip(input)

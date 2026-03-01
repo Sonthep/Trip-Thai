@@ -4,14 +4,11 @@ import { notFound } from "next/navigation"
 import {
   AlertTriangle,
   ArrowRight,
-  BedDouble,
   CalendarDays,
   Car,
   Clock,
   Coins,
-  Fuel,
   MapPin,
-  Utensils,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +23,7 @@ import { Footer } from "@/components/footer"
 import { CustomTripParamsEditor } from "./params-editor"
 import { ShareButton } from "@/components/share-button"
 import { SaveTripButton } from "@/components/save-trip-button"
+import { BudgetCardsEditor } from "@/components/budget-cards-editor"
 
 const CATEGORY_EMOJI: Record<string, string> = {
   nature: "🌿",
@@ -53,6 +51,8 @@ type Props = {
     kmPerLiter?: string
     places?: string
     budgetTier?: string
+    foodPerDay?: string
+    accommodationPerNight?: string
   }>
 }
 
@@ -89,10 +89,13 @@ export default async function CustomTripPage({ searchParams }: Props) {
       ? (sp.budgetTier as "budget" | "comfort")
       : ("mid" as const)
 
-  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier })
+  const foodPerDayOverride = sp.foodPerDay ? Math.max(1, parseInt(sp.foodPerDay, 10)) || undefined : undefined
+  const accomPerNightOverride = sp.accommodationPerNight ? Math.max(1, parseInt(sp.accommodationPerNight, 10)) || undefined : undefined
+
+  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride })
   const days = Math.max(1, Math.round(probe.distance_km / 350) + 1)
 
-  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier })
+  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride })
 
   const lo = Math.round((result.total_cost * 0.85) / 100) * 100
   const hi = Math.round((result.total_cost * 1.2) / 100) * 100
@@ -256,20 +259,20 @@ export default async function CustomTripPage({ searchParams }: Props) {
                 &nbsp;·&nbsp;{people} คน&nbsp;·&nbsp;{days} วัน&nbsp;·&nbsp;{carLabel} ({kmPerLiter} กม./ล.)
               </p>
             </CardHeader>
-            <CardContent className="grid grid-cols-3 gap-3 text-xs text-white/75">
-              {[
-                { icon: Car, color: "text-amber-400", bg: "bg-amber-400/10", label: "ค่าเดินทาง", value: result.fuel_cost + result.toll_cost },
-                { icon: Utensils, color: "text-emerald-400", bg: "bg-emerald-400/10", label: `ค่าอาหาร (฿${result.food_per_person_per_day}/คน/วัน)`, value: result.food_cost },
-                { icon: BedDouble, color: "text-violet-400", bg: "bg-violet-400/10", label: `ค่าที่พัก (฿${result.accommodation_per_night}/คืน)`, value: result.accommodation_cost },
-              ].filter((item) => item.value > 0).map(({ icon: Icon, color, bg, label, value }) => (
-                <div key={label} className={`rounded-xl border border-white/8 ${bg} p-3`}>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Icon className={`h-3.5 w-3.5 ${color}`} />
-                    <span>{label}</span>
-                  </div>
-                  <p className={`font-bold text-sm ${color}`}>{formatCurrency(value)}</p>
-                </div>
-              ))}
+            <CardContent>
+              <BudgetCardsEditor
+                origin={origin}
+                destination={destination}
+                people={people}
+                kmPerLiter={kmPerLiter}
+                places={sp.places}
+                budgetTier={budgetTier}
+                foodPerDay={result.food_per_person_per_day}
+                accommodationPerNight={result.accommodation_per_night}
+                travelCost={result.fuel_cost + result.toll_cost}
+                foodCost={result.food_cost}
+                accommodationCost={result.accommodation_cost}
+              />
             </CardContent>
           </Card>
         </section>

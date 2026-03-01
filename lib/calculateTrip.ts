@@ -11,6 +11,10 @@ export type TripCalculationInput = {
   fuelPrice: number
   /** ประหยัด / ปานกลาง / สบาย — affects food & accommodation estimates */
   budgetTier?: "budget" | "mid" | "comfort"
+  /** Override food rate (฿/person/day) — takes priority over budgetTier */
+  foodPerDay?: number
+  /** Override accommodation rate (฿/night) — takes priority over budgetTier */
+  accommodationPerNight?: number
 }
 
 export type TripSegment = {
@@ -278,7 +282,15 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
   const safeKmPerLiter = Number.isFinite(input.kmPerLiter) && input.kmPerLiter > 0 ? input.kmPerLiter : 12
   const safeFuelPrice = Number.isFinite(input.fuelPrice) && input.fuelPrice > 0 ? input.fuelPrice : 38
   const tier = input.budgetTier ?? "mid"
-  const { foodPerPersonPerDay, accommodationPerNight } = BUDGET_TIERS[tier]
+  const tierDefaults = BUDGET_TIERS[tier]
+  const foodPerPersonPerDay =
+    Number.isFinite(input.foodPerDay) && input.foodPerDay! > 0
+      ? input.foodPerDay!
+      : tierDefaults.foodPerPersonPerDay
+  const accommodationPerNight =
+    Number.isFinite(input.accommodationPerNight) && input.accommodationPerNight! > 0
+      ? input.accommodationPerNight!
+      : tierDefaults.accommodationPerNight
 
   const sanitizedStops = normalizeStops(input.stops, safeOrigin, safeDestination)
   const orderedStops =
