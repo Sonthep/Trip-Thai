@@ -8,11 +8,8 @@ import {
   Car,
   Clock,
   Coins,
-  Fuel,
   Map,
   MapPin,
-  Utensils,
-  BedDouble,
 } from "lucide-react"
 import { TripBudgetChart } from "@/components/TripBudgetChart"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
@@ -28,6 +25,7 @@ import Image from "next/image"
 import { CopyItineraryButton } from "@/components/copy-itinerary-button"
 import { ReviewSection } from "@/components/review-section"
 import { prisma } from "@/lib/db"
+import { SlugBudgetCards } from "@/components/slug-budget-cards"
 
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
@@ -271,32 +269,12 @@ export default async function TripPage({ params }: TripPageProps) {
 
         {/* Budget Summary Card */}
         <section>
-          <Card className="border-white/10 bg-slate-900/80 shadow-xl shadow-black/30">
-            <CardHeader className="pb-3">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">งบประมาณรวมสำหรับทั้งทริป</p>
-              <CardTitle className="mt-2 text-2xl font-semibold text-white md:text-3xl">
-                {formatCurrency(budget.total)}
-              </CardTitle>
-              <p className="mt-1 text-[11px] text-white/55">
-                ประมาณการสำหรับ {trip.itinerary.length} วัน ({trip.budgetRangeLabel})
-              </p>
-            </CardHeader>
-            <CardContent className="grid grid-cols-3 gap-3 text-xs text-white/75">
-              {[
-                { icon: Car, color: "text-amber-400", label: "ค่าเดินทาง", value: budget.fuel + budget.toll },
-                { icon: Utensils, color: "text-emerald-400", label: "ค่าอาหาร", value: budget.food },
-                { icon: BedDouble, color: "text-violet-400", label: "ค่าที่พัก", value: budget.accommodation },
-              ].map(({ icon: Icon, color, label, value }) => (
-                <div key={label} className="rounded-xl border border-white/8 bg-white/5 p-3">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <Icon className={`h-3.5 w-3.5 ${color}`} />
-                    <span>{label}</span>
-                  </div>
-                  <p className="font-semibold text-white text-sm">{formatCurrency(value)}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <SlugBudgetCards
+            initialTravel={budget.fuel + budget.toll}
+            initialFood={budget.food}
+            initialAccommodation={budget.accommodation}
+            durationLabel={`ประมาณการสำหรับ ${trip.itinerary.length} วัน (${trip.budgetRangeLabel})`}
+          />
         </section>
 
         {/* Budget Breakdown Section */}
