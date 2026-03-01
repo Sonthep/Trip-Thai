@@ -54,8 +54,7 @@ type Props = {
     foodPerDay?: string
     accommodationPerNight?: string
     travelCost?: string
-    robots: { index: false },
-  }
+  }>
 }
 
 function formatCurrency(amount: number) {
