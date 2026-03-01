@@ -8,7 +8,6 @@ import {
   Car,
   Clock,
   Coins,
-  Map,
   MapPin,
 } from "lucide-react"
 import { TripMapClient as TripMap } from "@/components/TripMapClient"
@@ -21,10 +20,10 @@ import { SaveTripButton } from "@/components/save-trip-button"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import Image from "next/image"
-import { CopyItineraryButton } from "@/components/copy-itinerary-button"
 import { ReviewSection } from "@/components/review-section"
 import { prisma } from "@/lib/db"
 import { SlugBudgetCards } from "@/components/slug-budget-cards"
+import { EditableItinerary } from "@/components/editable-itinerary"
 
 const TRIP_PHOTOS: Record<string, string> = {
   "bangkok-chiang-mai":   "https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=1200&q=80",
@@ -272,46 +271,7 @@ export default async function TripPage({ params }: TripPageProps) {
         </section>
 
         {/* Day-by-day Itinerary */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
-              <Map className="h-4 w-4 text-emerald-400" />
-              แผนเที่ยววันต่อวัน
-            </h2>
-            <div className="flex items-center gap-2">
-              <p className="hidden text-[11px] text-white/55 sm:block">ข้อมูลตัวอย่าง สามารถปรับเปลี่ยนตามสไตล์การเที่ยวของคุณ</p>
-              <CopyItineraryButton trip={trip} />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {trip.itinerary.map((day) => (
-              <Card
-                key={day.day}
-                className="relative border-white/10 bg-slate-900/80 shadow-md shadow-black/20"
-              >
-                <div className="absolute left-4 top-4 flex h-7 items-center rounded-full bg-emerald-500/10 px-3 text-[11px] font-medium text-emerald-200 ring-1 ring-emerald-500/40">
-                  Day {day.day}
-                </div>
-                <CardHeader className="pb-2 pt-11">
-                  <CardTitle className="text-sm font-semibold text-white">
-                    {day.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-xs text-white/75">
-                  <ul className="space-y-2">
-                    {day.items.map((item, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+        <EditableItinerary initialItinerary={trip.itinerary} />
 
         {/* Map Preview */}
         <section className="space-y-4 print:hidden">
