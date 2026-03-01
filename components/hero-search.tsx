@@ -33,9 +33,6 @@ export function HeroSearch() {
               className="h-12 w-full rounded-xl bg-white/5 pl-9 pr-3 text-sm text-white placeholder:text-white/35 focus:bg-white/10 focus:outline-none"
             />
           </div>
-          <div className="hidden items-center sm:flex">
-            <ArrowRight className="h-4 w-4 text-white/30" />
-          </div>
           <div className="relative flex-1">
             <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange-400" />
             <input
