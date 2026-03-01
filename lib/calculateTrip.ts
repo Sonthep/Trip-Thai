@@ -15,6 +15,8 @@ export type TripCalculationInput = {
   foodPerDay?: number
   /** Override accommodation rate (฿/night) — takes priority over budgetTier */
   accommodationPerNight?: number
+  /** Override total travel cost (fuel+toll combined) — user-supplied value */
+  travelCostOverride?: number
 }
 
 export type TripSegment = {
@@ -321,12 +323,17 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
   )
   const toll_cost = segments.reduce((sum, segment) => sum + segment.toll_cost, 0)
 
-  const fuel_cost = (distance_km / safeKmPerLiter) * safeFuelPrice
+  const calcFuel = (distance_km / safeKmPerLiter) * safeFuelPrice
+  const calcToll = toll_cost
+  const hasTravelOverride =
+    Number.isFinite(input.travelCostOverride) && input.travelCostOverride! >= 0
+  const fuel_cost = hasTravelOverride ? input.travelCostOverride! : calcFuel
+  const effective_toll = hasTravelOverride ? 0 : calcToll
   const food_cost = foodPerPersonPerDay * safePeople * safeDays
   const accommodation_nights = Math.max(safeDays - 1, 0)
   const accommodation_cost = accommodationPerNight * accommodation_nights
 
-  const total_cost = fuel_cost + toll_cost + food_cost + accommodation_cost
+  const total_cost = fuel_cost + effective_toll + food_cost + accommodation_cost
   const cost_per_person = Math.round(total_cost / safePeople)
 
   const round = (value: number) => Math.round(value)
@@ -335,7 +342,7 @@ export function calculateTrip(input: TripCalculationInput): TripCalculationResul
     distance_km: Math.round(distance_km),
     duration_hours,
     fuel_cost: round(fuel_cost),
-    toll_cost: round(toll_cost),
+    toll_cost: round(effective_toll),
     food_cost: round(food_cost),
     accommodation_cost: round(accommodation_cost),
     total_cost: round(total_cost),

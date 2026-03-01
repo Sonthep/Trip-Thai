@@ -22,6 +22,7 @@ export async function POST(request: Request) {
           : "mid",
       ...(body.foodPerDay ? { foodPerDay: Math.max(1, Number(body.foodPerDay)) } : {}),
       ...(body.accommodationPerNight ? { accommodationPerNight: Math.max(1, Number(body.accommodationPerNight)) } : {}),
+      ...(body.travelCostOverride !== undefined ? { travelCostOverride: Math.max(0, Number(body.travelCostOverride)) } : {}),
     }
 
     const result = calculateTrip(input)

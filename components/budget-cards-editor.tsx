@@ -14,6 +14,7 @@ type Props = {
   foodPerDay: number
   accommodationPerNight: number
   travelCost: number
+  travelCostOverride?: number
   foodCost: number
   accommodationCost: number
 }
@@ -93,33 +94,49 @@ function EditableRateField({
 export function BudgetCardsEditor({
   origin, destination, people, kmPerLiter, places, budgetTier,
   foodPerDay, accommodationPerNight,
-  travelCost, foodCost, accommodationCost,
+  travelCost, travelCostOverride, foodCost, accommodationCost,
 }: Props) {
   const router = useRouter()
 
-  function pushUpdate(newFoodPerDay: number, newAccomPerNight: number) {
-    const params = new URLSearchParams({
+  function pushUpdate(params: {
+    travel?: number
+    food?: number
+    accom?: number
+  }) {
+    const searchParams = new URLSearchParams({
       origin,
       destination,
       people: String(people),
       kmPerLiter: String(kmPerLiter),
       budgetTier,
-      foodPerDay: String(newFoodPerDay),
-      accommodationPerNight: String(newAccomPerNight),
+      foodPerDay: String(params.food ?? foodPerDay),
+      accommodationPerNight: String(params.accom ?? accommodationPerNight),
+      ...(params.travel !== undefined ? { travelCost: String(params.travel) } : travelCostOverride !== undefined ? { travelCost: String(travelCostOverride) } : {}),
       ...(places ? { places } : {}),
     })
-    router.push(`/trip/custom?${params.toString()}`)
+    router.push(`/trip/custom?${searchParams.toString()}`)
   }
 
   const cards = [
     {
+      key: "travel",
       icon: Car,
       color: "text-amber-400",
       bg: "bg-amber-400/10",
-      label: <span>ค่าเดินทาง</span>,
+      label: (
+        <span className="flex flex-wrap items-center gap-0.5">
+          ค่าเดินทาง&nbsp;
+          <EditableRateField
+            value={travelCost}
+            suffix=""
+            onCommit={(v) => pushUpdate({ travel: v })}
+          />
+        </span>
+      ),
       value: travelCost,
     },
     {
+      key: "food",
       icon: Utensils,
       color: "text-emerald-400",
       bg: "bg-emerald-400/10",
@@ -129,13 +146,14 @@ export function BudgetCardsEditor({
           <EditableRateField
             value={foodPerDay}
             suffix="/คน/วัน"
-            onCommit={(v) => pushUpdate(v, accommodationPerNight)}
+            onCommit={(v) => pushUpdate({ food: v })}
           />
         </span>
       ),
       value: foodCost,
     },
     {
+      key: "accommodation",
       icon: BedDouble,
       color: "text-violet-400",
       bg: "bg-violet-400/10",
@@ -145,7 +163,7 @@ export function BudgetCardsEditor({
           <EditableRateField
             value={accommodationPerNight}
             suffix="/คืน"
-            onCommit={(v) => pushUpdate(foodPerDay, v)}
+            onCommit={(v) => pushUpdate({ accom: v })}
           />
         </span>
       ),
@@ -155,8 +173,8 @@ export function BudgetCardsEditor({
 
   return (
     <div className="grid grid-cols-3 gap-3 text-xs text-white/75">
-      {cards.map(({ icon: Icon, color, bg, label, value }) => (
-        <div key={String(label)} className={`rounded-xl border border-white/8 ${bg} p-3`}>
+      {cards.map(({ key, icon: Icon, color, bg, label, value }) => (
+        <div key={key} className={`rounded-xl border border-white/8 ${bg} p-3`}>
           <div className="flex flex-wrap items-center gap-1.5 mb-1">
             <Icon className={`h-3.5 w-3.5 shrink-0 ${color}`} />
             <span>{label}</span>

@@ -53,16 +53,7 @@ type Props = {
     budgetTier?: string
     foodPerDay?: string
     accommodationPerNight?: string
-  }>
-}
-
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const sp = await searchParams
-  const origin = sp.origin ?? "ต้นทาง"
-  const destination = sp.destination ?? "ปลายทาง"
-  return {
-    title: `${origin} → ${destination} | TripThai`,
-    description: `คำนวณงบและแผนทริปขับรถ ${origin} ไป ${destination}`,
+    travelCost?: string
     robots: { index: false },
   }
 }
@@ -91,11 +82,12 @@ export default async function CustomTripPage({ searchParams }: Props) {
 
   const foodPerDayOverride = sp.foodPerDay ? Math.max(1, parseInt(sp.foodPerDay, 10)) || undefined : undefined
   const accomPerNightOverride = sp.accommodationPerNight ? Math.max(1, parseInt(sp.accommodationPerNight, 10)) || undefined : undefined
+  const travelCostOverride = sp.travelCost ? Math.max(0, parseInt(sp.travelCost, 10)) || undefined : undefined
 
-  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride })
+  const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride, travelCostOverride })
   const days = Math.max(1, Math.round(probe.distance_km / 350) + 1)
 
-  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride })
+  const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride, travelCostOverride })
 
   const lo = Math.round((result.total_cost * 0.85) / 100) * 100
   const hi = Math.round((result.total_cost * 1.2) / 100) * 100
@@ -270,6 +262,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
                 foodPerDay={result.food_per_person_per_day}
                 accommodationPerNight={result.accommodation_per_night}
                 travelCost={result.fuel_cost + result.toll_cost}
+                travelCostOverride={travelCostOverride}
                 foodCost={result.food_cost}
                 accommodationCost={result.accommodation_cost}
               />
