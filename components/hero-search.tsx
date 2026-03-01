@@ -2,17 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowRight, Loader2, MapPin, Users, Car } from "lucide-react"
+import { ArrowRight, Loader2, MapPin, Users } from "lucide-react"
 
 const POPULAR_DESTINATIONS = [
   "เชียงใหม่", "ภูเก็ต", "กระบี่", "เขาใหญ่", "หัวหิน", "พัทยา", "เชียงราย",
-]
-
-const CAR_OPTIONS = [
-  { label: "เก็ง", icon: "🚗", kpl: 15 },
-  { label: "SUV",  icon: "🚙", kpl: 12 },
-  { label: "กระบะ", icon: "🛳", kpl: 10 },
-  { label: "ECO",  icon: "♻️", kpl: 18 },
 ]
 
 const BUDGET_TIERS = [
@@ -27,7 +20,6 @@ export function HeroSearch() {
   const [origin, setOrigin] = useState("")
   const [destination, setDestination] = useState("")
   const [people, setPeople] = useState(2)
-  const [carIdx, setCarIdx] = useState(1) // SUV default
   const [tier, setTier] = useState<BudgetTierKey>("mid")
   const [loading, setLoading] = useState(false)
 
@@ -35,9 +27,8 @@ export function HeroSearch() {
     e.preventDefault()
     if (!origin.trim() || !destination.trim()) return
     setLoading(true)
-    const kpl = CAR_OPTIONS[carIdx].kpl
     router.push(
-      `/trip/custom?origin=${encodeURIComponent(origin.trim())}&destination=${encodeURIComponent(destination.trim())}&people=${people}&kmPerLiter=${kpl}&budgetTier=${tier}`
+      `/trip/custom?origin=${encodeURIComponent(origin.trim())}&destination=${encodeURIComponent(destination.trim())}&people=${people}&kmPerLiter=12&budgetTier=${tier}`
     )
   }
 
@@ -88,27 +79,6 @@ export function HeroSearch() {
                 <option key={n} value={n} className="bg-slate-900">{n} คน</option>
               ))}
             </select>
-          </div>
-
-          <span className="h-4 w-px bg-white/15" />
-
-          {/* Car type */}
-          <div className="flex items-center gap-1.5">
-            <Car className="h-3.5 w-3.5 text-white/40" />
-            <div className="flex gap-1">
-              {CAR_OPTIONS.map((c, i) => (
-                <button
-                  key={c.label}
-                  type="button"
-                  onClick={() => setCarIdx(i)}
-                  className={`rounded-lg px-2 py-1 text-xs font-semibold transition-colors ${
-                    carIdx === i ? "bg-white/20 text-white" : "text-white/50 hover:text-white/80"
-                  }`}
-                >
-                  {c.icon} {c.label}
-                </button>
-              ))}
-            </div>
           </div>
 
           <span className="h-4 w-px bg-white/15" />
