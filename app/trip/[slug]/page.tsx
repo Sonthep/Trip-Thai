@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Car,
   Clock,
+  Coins,
   Map,
   MapPin,
 } from "lucide-react"
