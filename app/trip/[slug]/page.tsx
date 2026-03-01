@@ -118,8 +118,7 @@ export default async function TripPage({ params }: TripPageProps) {
   const { budget } = trip
   const baseUrl = getSiteUrl()
   const budgetData = [
-    { key: "fuel", name: "ค่าน้ำมัน", value: budget.fuel },
-    { key: "toll", name: "ค่าทางด่วน", value: budget.toll },
+    { key: "travel", name: "ค่าเดินทาง", value: budget.fuel + budget.toll },
     { key: "food", name: "ค่าอาหาร", value: budget.food },
     { key: "accommodation", name: "ค่าที่พัก", value: budget.accommodation },
   ].filter((item) => item.value > 0)
@@ -282,10 +281,9 @@ export default async function TripPage({ params }: TripPageProps) {
                 ประมาณการสำหรับ {trip.itinerary.length} วัน ({trip.budgetRangeLabel})
               </p>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 text-xs text-white/75 sm:grid-cols-4">
+            <CardContent className="grid grid-cols-3 gap-3 text-xs text-white/75">
               {[
-                { icon: Fuel, color: "text-amber-400", label: "ค่าน้ำมัน", value: budget.fuel },
-                { icon: Coins, color: "text-sky-400", label: "ค่าทางด่วน", value: budget.toll },
+                { icon: Car, color: "text-amber-400", label: "ค่าเดินทาง", value: budget.fuel + budget.toll },
                 { icon: Utensils, color: "text-emerald-400", label: "ค่าอาหาร", value: budget.food },
                 { icon: BedDouble, color: "text-violet-400", label: "ค่าที่พัก", value: budget.accommodation },
               ].map(({ icon: Icon, color, label, value }) => (
@@ -317,13 +315,8 @@ export default async function TripPage({ params }: TripPageProps) {
               {budgetData.map((item) => {
                 const percentage = (item.value / budget.total) * 100
                 const colorClass =
-                  item.key === "fuel"
-                    ? "bg-amber-400"
-                    : item.key === "toll"
-                      ? "bg-sky-400"
-                      : item.key === "food"
-                        ? "bg-emerald-400"
-                        : "bg-violet-400"
+                  item.key === "travel" ? "bg-amber-400" :
+                  item.key === "food" ? "bg-emerald-400" : "bg-violet-400"
 
                 return (
                   <div key={item.key} className="space-y-1.5">

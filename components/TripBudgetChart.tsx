@@ -9,7 +9,7 @@ import {
 import { Pie, PieChart, Cell } from "recharts"
 
 type BudgetSlice = {
-  key: "fuel" | "toll" | "food" | "accommodation"
+  key: "travel" | "fuel" | "toll" | "food" | "accommodation"
   name: string
   value: number
 }
@@ -19,6 +19,10 @@ type TripBudgetChartProps = {
 }
 
 const budgetChartConfig: ChartConfig = {
+  travel: {
+    label: "ค่าเดินทาง",
+    color: "hsl(24 95% 58%)",
+  },
   fuel: {
     label: "ค่าน้ำมัน",
     color: "hsl(24 95% 58%)",

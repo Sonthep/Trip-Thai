@@ -141,8 +141,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
   }
 
   const budgetData = [
-    { key: "fuel" as const, name: "ค่าน้ำมัน", value: result.fuel_cost },
-    { key: "toll" as const, name: "ค่าทางด่วน", value: result.toll_cost },
+    { key: "travel" as const, name: "ค่าเดินทาง", value: result.fuel_cost + result.toll_cost },
     { key: "food" as const, name: "ค่าอาหาร", value: result.food_cost },
     { key: "accommodation" as const, name: "ค่าที่พัก", value: result.accommodation_cost },
   ].filter((item) => item.value > 0)
@@ -257,10 +256,9 @@ export default async function CustomTripPage({ searchParams }: Props) {
                 &nbsp;·&nbsp;{people} คน&nbsp;·&nbsp;{days} วัน&nbsp;·&nbsp;{carLabel} ({kmPerLiter} กม./ล.)
               </p>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3 text-xs text-white/75 sm:grid-cols-4">
+            <CardContent className="grid grid-cols-3 gap-3 text-xs text-white/75">
               {[
-                { icon: Fuel, color: "text-amber-400", bg: "bg-amber-400/10", label: "ค่าน้ำมัน", value: result.fuel_cost },
-                { icon: Coins, color: "text-sky-400", bg: "bg-sky-400/10", label: "ค่าทางด่วน", value: result.toll_cost },
+                { icon: Car, color: "text-amber-400", bg: "bg-amber-400/10", label: "ค่าเดินทาง", value: result.fuel_cost + result.toll_cost },
                 { icon: Utensils, color: "text-emerald-400", bg: "bg-emerald-400/10", label: `ค่าอาหาร (฿${result.food_per_person_per_day}/คน/วัน)`, value: result.food_cost },
                 { icon: BedDouble, color: "text-violet-400", bg: "bg-violet-400/10", label: `ค่าที่พัก (฿${result.accommodation_per_night}/คืน)`, value: result.accommodation_cost },
               ].filter((item) => item.value > 0).map(({ icon: Icon, color, bg, label, value }) => (
@@ -376,8 +374,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
               {budgetData.map((item) => {
                 const pct = result.total_cost ? (item.value / result.total_cost) * 100 : 0
                 const cls =
-                  item.key === "fuel" ? "bg-amber-400" :
-                  item.key === "toll" ? "bg-sky-400" :
+                  item.key === "travel" ? "bg-amber-400" :
                   item.key === "food" ? "bg-emerald-400" : "bg-violet-400"
                 return (
                   <div key={item.key} className="space-y-1.5">

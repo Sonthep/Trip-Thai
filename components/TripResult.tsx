@@ -1,6 +1,6 @@
 "use client"
 
-import { Car, Coins, Fuel, PartyPopper, Utensils, BedDouble, Timer } from "lucide-react"
+import { Car, PartyPopper, Utensils, BedDouble, Timer } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import type { TripCalculationResult } from "@/lib/calculateTrip"
@@ -43,18 +43,11 @@ export function TripResult({ result }: TripResultProps) {
 
   const breakdown = [
     {
-      key: "fuel",
-      label: "ค่าน้ำมัน",
-      value: fuel_cost,
-      icon: Fuel,
+      key: "travel",
+      label: "ค่าเดินทาง",
+      value: fuel_cost + toll_cost,
+      icon: Car,
       color: "bg-amber-400",
-    },
-    {
-      key: "toll",
-      label: "ค่าทางด่วน",
-      value: toll_cost,
-      icon: Coins,
-      color: "bg-sky-400",
     },
     {
       key: "food",
@@ -198,7 +191,7 @@ export function TripResult({ result }: TripResultProps) {
         {/* Summary footer */}
         <div className="flex flex-col gap-3 border-t border-white/10 pt-3 text-xs text-white/70 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
-            <Coins className="h-3.5 w-3.5 text-[hsl(24,90%,65%)]" />
+            <Car className="h-3.5 w-3.5 text-[hsl(24,90%,65%)]" />
             <span>รวมทุกค่าใช้จ่ายหลักของทริป (ไม่รวมช้อปปิ้งและค่าใช้จ่ายส่วนตัว)</span>
           </div>
         </div>
