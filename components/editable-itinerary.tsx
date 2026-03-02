@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Map, Plus, Trash2, Pencil, Check, X } from "lucide-react"
+import { Map, Plus, Trash2, Pencil, Check, X, RotateCcw } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { TripDay } from "@/lib/trips"
 
 type Props = {
   initialItinerary: TripDay[]
+  storageKey: string
 }
 
 function EditableText({
@@ -98,37 +99,48 @@ function EditableText({
   )
 }
 
-export function EditableItinerary({ initialItinerary }: Props) {
-  const [days, setDays] = useState<TripDay[]>(initialItinerary)
+export function EditableItinerary({ initialItinerary, storageKey }: Props) {
+  const [days, setDays] = useState<TripDay[]>(() => {
+    if (typeof window === "undefined") return initialItinerary
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved) return JSON.parse(saved) as TripDay[]
+    } catch {}
+    return initialItinerary
+  })
+
+  function save(next: TripDay[]) {
+    setDays(next)
+    try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch {}
+  }
 
   function updateTitle(dayIdx: number, title: string) {
-    setDays((prev) => prev.map((d, i) => i === dayIdx ? { ...d, title } : d))
+    save(days.map((d, i) => i === dayIdx ? { ...d, title } : d))
   }
 
   function updateItem(dayIdx: number, itemIdx: number, value: string) {
-    setDays((prev) =>
-      prev.map((d, i) =>
-        i === dayIdx
-          ? { ...d, items: d.items.map((it, j) => (j === itemIdx ? value : it)) }
-          : d
-      )
-    )
+    save(days.map((d, i) =>
+      i === dayIdx
+        ? { ...d, items: d.items.map((it, j) => (j === itemIdx ? value : it)) }
+        : d
+    ))
   }
 
   function deleteItem(dayIdx: number, itemIdx: number) {
-    setDays((prev) =>
-      prev.map((d, i) =>
-        i === dayIdx ? { ...d, items: d.items.filter((_, j) => j !== itemIdx) } : d
-      )
-    )
+    save(days.map((d, i) =>
+      i === dayIdx ? { ...d, items: d.items.filter((_, j) => j !== itemIdx) } : d
+    ))
   }
 
   function addItem(dayIdx: number) {
-    setDays((prev) =>
-      prev.map((d, i) =>
-        i === dayIdx ? { ...d, items: [...d.items, "กิจกรรมใหม่"] } : d
-      )
-    )
+    save(days.map((d, i) =>
+      i === dayIdx ? { ...d, items: [...d.items, "กิจกรรมใหม่"] } : d
+    ))
+  }
+
+  function reset() {
+    try { localStorage.removeItem(storageKey) } catch {}
+    setDays(initialItinerary)
   }
 
   return (
@@ -138,7 +150,17 @@ export function EditableItinerary({ initialItinerary }: Props) {
           <Map className="h-4 w-4 text-emerald-400" />
           แผนเที่ยววันต่อวัน
         </h2>
-        <p className="hidden text-[11px] text-white/55 sm:block">คลิกข้อความเพื่อแก้ไข · กด + เพิ่มกิจกรรม</p>
+        <div className="flex items-center gap-3">
+          <p className="hidden text-[11px] text-white/55 sm:block">คลิกข้อความเพื่อแก้ไข · กด + เพิ่มกิจกรรม</p>
+          <button
+            onClick={reset}
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/30 transition hover:bg-white/5 hover:text-white/60"
+            title="รีเซ็ตแผนต้นฉบับ"
+          >
+            <RotateCcw className="h-3 w-3" />
+            รีเซ็ต
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

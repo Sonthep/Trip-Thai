@@ -24,6 +24,8 @@ import { CustomTripParamsEditor } from "./params-editor"
 import { ShareButton } from "@/components/share-button"
 import { SaveTripButton } from "@/components/save-trip-button"
 import { BudgetCardsEditor } from "@/components/budget-cards-editor"
+import { EditableItinerary } from "@/components/editable-itinerary"
+import type { TripDay } from "@/lib/trips"
 
 const CATEGORY_EMOJI: Record<string, string> = {
   nature: "🌿",
@@ -112,27 +114,53 @@ export default async function CustomTripPage({ searchParams }: Props) {
   const originPos = firstWp?.location ?? getProvinceCoordinate(origin)
   const destPos = lastWp?.location ?? getProvinceCoordinate(destination)
 
-  // ── Day-by-day itinerary from plan places ───────────────────────────
-  type ItineraryDay = { day: number; title: string; places: typeof orderedPlanPlaces }
-  const itinerary: ItineraryDay[] = []
-  if (orderedPlanPlaces.length > 0) {
-    const placesPerDay = Math.ceil(orderedPlanPlaces.length / days)
-    for (let d = 0; d < days; d++) {
-      const slice = orderedPlanPlaces.slice(d * placesPerDay, (d + 1) * placesPerDay)
-      if (slice.length === 0 && d > 0) continue
-      const prov = slice[0]?.province ?? (d === days - 1 ? destination : "")
-      itinerary.push({
-        day: d + 1,
-        title:
-          d === 0
-            ? `วันแรก · ออกเดินทางจาก${origin}`
-            : d === days - 1
-            ? `วันสุดท้าย · มุ่งหน้า${destination}`
+  // ── Day-by-day itinerary ─────────────────────────────────────────────
+  const tripItinerary: TripDay[] = (() => {
+    if (orderedPlanPlaces.length > 0) {
+      const placesPerDay = Math.ceil(orderedPlanPlaces.length / days)
+      return Array.from({ length: days }, (_, d) => {
+        const slice = orderedPlanPlaces.slice(d * placesPerDay, (d + 1) * placesPerDay)
+        const prov = slice[0]?.province ?? (d === days - 1 ? destination : "")
+        return {
+          day: d + 1,
+          title:
+            d === 0 ? `วันแรก · ออกเดินทางจาก${origin}`
+            : d === days - 1 ? `วันสุดท้าย · มุ่งหน้า${destination}`
             : `วันที่ ${d + 1} · สำรวจ${prov}`,
-        places: slice,
+          items: slice.map((p) => `${CATEGORY_EMOJI[p!.category] ?? "📍"} ${p!.name} (${p!.province})`),
+        }
       })
     }
-  }
+    return Array.from({ length: days }, (_, d) => {
+      if (d === 0) return {
+        day: 1,
+        title: `วันแรก · ออกเดินทางจาก${origin}`,
+        items: [
+          `ออกเดินทางจาก${origin} ช่วงเช้า`,
+          `แวะพักระหว่างทางตามสบาย`,
+          `เช็คอินที่พักใน${destination} ช่วงเย็น`,
+        ],
+      }
+      if (d === days - 1) return {
+        day: d + 1,
+        title: `วันสุดท้าย · กลับ${origin}`,
+        items: [
+          `เช็คเอาท์ที่พักช่วงเช้า`,
+          `เที่ยวแหล่งท่องเที่ยวใกล้เคียง${destination}ก่อนกลับ`,
+          `ออกเดินทางกลับ${origin}`,
+        ],
+      }
+      return {
+        day: d + 1,
+        title: `วันที่ ${d + 1} · สำรวจ${destination}`,
+        items: [
+          `สำรวจสถานที่ท่องเที่ยวใน${destination}`,
+          `ลิ้มลองอาหารท้องถิ่น`,
+          `พักผ่อนตามอัธยาศัย`,
+        ],
+      }
+    })
+  })()
 
   const budgetData = [
     { key: "travel" as const, name: "ค่าเดินทาง", value: result.fuel_cost + result.toll_cost },
@@ -321,41 +349,11 @@ export default async function CustomTripPage({ searchParams }: Props) {
           </section>
         )}
 
-        {/* ── Day-by-day itinerary (from plan places) ───────────────── */}
-        {itinerary.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold tracking-wide text-white">
-              <CalendarDays className="h-4 w-4 text-emerald-400" />
-              แผนเที่ยววันต่อวัน
-              <span className="text-[11px] font-normal text-white/40">(จากสถานที่ที่คุณเลือก)</span>
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {itinerary.map((day) => (
-                <div key={day.day} className="relative rounded-2xl border border-white/10 bg-slate-900/80 p-4 pt-11">
-                  <div className="absolute left-4 top-4 flex h-7 items-center rounded-full bg-emerald-500/10 px-3 text-[11px] font-medium text-emerald-200 ring-1 ring-emerald-500/40">
-                    Day {day.day}
-                  </div>
-                  <p className="text-sm font-semibold text-white">{day.title}</p>
-                  {day.places.length > 0 ? (
-                    <ul className="mt-3 space-y-2">
-                      {day.places.map((p) => (
-                        <li key={p!.id} className="flex items-start gap-2 text-xs text-white/70">
-                          <span className="mt-0.5 text-base leading-none">{CATEGORY_EMOJI[p!.category] ?? "📍"}</span>
-                          <span>
-                            {p!.name}
-                            <span className="ml-1 text-[10px] text-white/35">({p!.province})</span>
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="mt-3 text-xs text-white/40">วันพักหรือเดินทางต่อ</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* ── Day-by-day itinerary ─────────────────────────────────── */}
+        <EditableItinerary
+          initialItinerary={tripItinerary}
+          storageKey={`itinerary:custom:${origin}:${destination}`}
+        />
 
         {/* ── Budget breakdown + chart ───────────────────────────────── */}
         <section className="grid gap-6 md:grid-cols-[3fr,2fr] md:items-stretch">

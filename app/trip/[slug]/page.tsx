@@ -271,7 +271,7 @@ export default async function TripPage({ params }: TripPageProps) {
         </section>
 
         {/* Day-by-day Itinerary */}
-        <EditableItinerary initialItinerary={trip.itinerary} />
+        <EditableItinerary initialItinerary={trip.itinerary} storageKey={`itinerary:${trip.slug}`} />
 
         {/* Map Preview */}
         <section className="space-y-4 print:hidden">
