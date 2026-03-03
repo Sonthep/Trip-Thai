@@ -86,7 +86,8 @@ export default async function CustomTripPage({ searchParams }: Props) {
   const travelCostOverride = sp.travelCost ? Math.max(0, parseInt(sp.travelCost, 10)) || undefined : undefined
 
   const probe = calculateTrip({ origin, destination, days: 1, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride, travelCostOverride })
-  const days = Math.max(1, Math.round(probe.distance_km / 350) + 1)
+  const autoDays = Math.max(1, Math.round(probe.distance_km / 350) + 1)
+  const days = sp.days ? Math.max(1, Math.min(30, Number(sp.days) || autoDays)) : autoDays
 
   const result = calculateTrip({ origin, destination, days, people, kmPerLiter, fuelPrice: 42, budgetTier, foodPerDay: foodPerDayOverride, accommodationPerNight: accomPerNightOverride, travelCostOverride })
 
@@ -234,6 +235,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
             destination={destination}
             people={people}
             kmPerLiter={kmPerLiter}
+            days={days}
             places={sp.places}
             budgetTier={budgetTier}
           />
