@@ -138,6 +138,22 @@ export function EditableItinerary({ initialItinerary, storageKey }: Props) {
     ))
   }
 
+  function addDay() {
+    const nextDay = days.length + 1
+    save([...days, {
+      day: nextDay,
+      title: `วันที่ ${nextDay}`,
+      items: ["กิจกรรมใหม่"],
+    }])
+  }
+
+  function deleteDay(dayIdx: number) {
+    const next = days
+      .filter((_, i) => i !== dayIdx)
+      .map((d, i) => ({ ...d, day: i + 1 }))
+    save(next)
+  }
+
   function reset() {
     try { localStorage.removeItem(storageKey) } catch {}
     setDays(initialItinerary)
@@ -151,7 +167,7 @@ export function EditableItinerary({ initialItinerary, storageKey }: Props) {
           แผนเที่ยววันต่อวัน
         </h2>
         <div className="flex items-center gap-3">
-          <p className="hidden text-[11px] text-white/55 sm:block">คลิกข้อความเพื่อแก้ไข · กด + เพิ่มกิจกรรม</p>
+          <p className="hidden text-[11px] text-white/55 sm:block">คลิกข้อความเพื่อแก้ไข · กด + เพิ่มกิจกรรม / วัน</p>
           <button
             onClick={reset}
             className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-white/30 transition hover:bg-white/5 hover:text-white/60"
@@ -167,11 +183,20 @@ export function EditableItinerary({ initialItinerary, storageKey }: Props) {
         {days.map((day, dayIdx) => (
           <Card
             key={day.day}
-            className="relative border-white/10 bg-slate-900/80 shadow-md shadow-black/20"
+            className="group/card relative border-white/10 bg-slate-900/80 shadow-md shadow-black/20"
           >
             <div className="absolute left-4 top-4 flex h-7 items-center rounded-full bg-emerald-500/10 px-3 text-[11px] font-medium text-emerald-200 ring-1 ring-emerald-500/40">
               Day {day.day}
             </div>
+            {days.length > 1 && (
+              <button
+                onClick={() => deleteDay(dayIdx)}
+                title="ลบวันนี้"
+                className="absolute right-3 top-3 rounded p-1 text-white/20 opacity-0 transition hover:bg-red-500/10 hover:text-red-400 group-hover/card:opacity-100"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
             <CardHeader className="pb-2 pt-11">
               <CardTitle className="text-sm font-semibold text-white">
                 <EditableText
@@ -214,6 +239,14 @@ export function EditableItinerary({ initialItinerary, storageKey }: Props) {
           </Card>
         ))}
       </div>
+
+      <button
+        onClick={addDay}
+        className="flex items-center gap-1.5 rounded-xl border border-dashed border-white/15 px-4 py-2.5 text-xs text-white/40 transition hover:border-emerald-400/40 hover:bg-emerald-400/5 hover:text-emerald-300"
+      >
+        <Plus className="h-3.5 w-3.5" />
+        เพิ่มวัน
+      </button>
     </section>
   )
 }
