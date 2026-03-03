@@ -148,7 +148,7 @@ export function BudgetCardsEditor({
       onCommit: (v: number) =>
         pushUpdate({ accom: Math.max(1, Math.round(v / Math.max(tripDays, 1))) }),
     },
-  ].filter((c) => c.value > 0)
+  ].filter((c) => c.key === "accommodation" || c.value > 0)
 
   return (
     <div className="grid grid-cols-3 gap-3 text-xs text-white/75">
