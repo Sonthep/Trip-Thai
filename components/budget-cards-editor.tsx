@@ -106,6 +106,7 @@ export function BudgetCardsEditor({
       people: String(people),
       kmPerLiter: String(kmPerLiter),
       budgetTier,
+      days: String(tripDays),
       foodPerDay: String(params.food ?? foodPerDay),
       accommodationPerNight: String(params.accom ?? accommodationPerNight),
       ...(params.travel !== undefined
@@ -146,7 +147,7 @@ export function BudgetCardsEditor({
       label: "ค่าที่พัก",
       value: accommodationCost,
       onCommit: (v: number) =>
-        pushUpdate({ accom: Math.max(1, Math.round(v / Math.max(tripDays, 1))) }),
+        pushUpdate({ accom: Math.max(1, Math.round(v / Math.max(tripDays - 1, 1))) }),
     },
   ].filter((c) => c.key === "accommodation" || c.value > 0)
 
