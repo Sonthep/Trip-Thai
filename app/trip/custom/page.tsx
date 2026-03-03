@@ -258,7 +258,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
         <section>
           <Card className="border-white/10 bg-slate-900/80 shadow-xl shadow-black/30">
             <CardHeader className="pb-3">
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/50">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.22em] text-white/50">
                 งบประมาณรวมโดยประมาณ
                 {result.budget_tier && (
                   <Badge
@@ -268,7 +268,7 @@ export default async function CustomTripPage({ searchParams }: Props) {
                     {result.budget_tier === "budget" ? "🟢 ประหยัด" : result.budget_tier === "comfort" ? "🔴 สบาย" : "🟡 ปานกลาง"}
                   </Badge>
                 )}
-              </p>
+              </div>
               <CardTitle className="mt-2 text-2xl font-semibold text-white md:text-3xl">
                 {formatCurrency(result.total_cost)}
               </CardTitle>
