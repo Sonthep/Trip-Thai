@@ -54,7 +54,7 @@ export default function Page() {
 
       {/* 6. Try it — แผนที่ */}
       <ErrorBoundary>
-        <Suspense fallback={<div className="h-[520px] bg-slate-50" />}>
+        <Suspense fallback={<div className="h-[88vh] min-h-[680px] bg-slate-50" />}>
           <div id="map-explorer" className="bg-slate-50">
             <ThailandMapExplorerClient />
           </div>

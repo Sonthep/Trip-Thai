@@ -7,7 +7,7 @@ const ThailandMapExplorerInner = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="mx-auto h-[72vh] min-h-[520px] w-full max-w-7xl animate-pulse rounded-2xl border border-white/10 bg-slate-900/70" />
+      <div className="mx-auto h-[88vh] min-h-[680px] w-full max-w-7xl animate-pulse rounded-2xl border border-white/10 bg-slate-900/70" />
     ),
   },
 )

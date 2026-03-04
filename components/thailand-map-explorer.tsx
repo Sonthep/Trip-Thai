@@ -1093,7 +1093,7 @@ export function ThailandMapExplorer() {
           </div>
 
           {/* RIGHT PANEL — map */}
-          <div className={`relative overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 lg:self-stretch min-h-[500px] lg:min-h-0 ${mobileTab === "list" ? "hidden lg:block" : "block"}`}>
+          <div className={`relative h-[88vh] min-h-[680px] overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 lg:h-[88vh] lg:self-stretch ${mobileTab === "list" ? "hidden lg:block" : "block"}`}>
 
             {/* Region legend */}
             <div className="pointer-events-none absolute bottom-4 left-4 z-[999] flex flex-col gap-1.5 rounded-2xl border border-white/70 bg-white/80 px-3 py-2.5 backdrop-blur-sm">
