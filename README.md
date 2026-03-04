@@ -177,6 +177,10 @@ vercel
 4. Push to branch (`git push origin feature/AmazingFeature`)
 5. Open Pull Request
 
+## 📚 Documents
+
+- Git workflow: [docs/git-workflow.md](docs/git-workflow.md)
+
 ## 📄 License
 
 MIT License - ดูรายละเอียดที่ [LICENSE](LICENSE)
